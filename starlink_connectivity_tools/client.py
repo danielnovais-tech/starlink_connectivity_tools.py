@@ -147,7 +147,7 @@ class StarlinkClient:
             >>> if status.is_online():
             ...     print("Device is online")
         """
-        if not self._channel and not self.use_remote:
+        if not self.use_remote and not self._channel:
             raise StarlinkConnectionError("Not connected. Call connect() first.")
         
         try:
@@ -192,7 +192,7 @@ class StarlinkClient:
             ...     if entry.network_stats:
             ...         print(f"{entry.timestamp}: {entry.network_stats.latency_ms}ms")
         """
-        if not self._channel and not self.use_remote:
+        if not self.use_remote and not self._channel:
             raise StarlinkConnectionError("Not connected. Call connect() first.")
         
         try:
@@ -232,7 +232,7 @@ class StarlinkClient:
             >>> if stats.is_healthy():
             ...     print("Network performance is good")
         """
-        if not self._channel and not self.use_remote:
+        if not self.use_remote and not self._channel:
             raise StarlinkConnectionError("Not connected. Call connect() first.")
         
         try:
@@ -267,7 +267,7 @@ class StarlinkClient:
             ...     for alert in telemetry.get_alerts_by_level(AlertLevel.CRITICAL):
             ...         print(f"Critical: {alert.message}")
         """
-        if not self._channel and not self.use_remote:
+        if not self.use_remote and not self._channel:
             raise StarlinkConnectionError("Not connected. Call connect() first.")
         
         try:
@@ -300,7 +300,7 @@ class StarlinkClient:
             ...     if telemetry.has_critical_alerts():
             ...         break
         """
-        if not self._channel and not self.use_remote:
+        if not self.use_remote and not self._channel:
             raise StarlinkConnectionError("Not connected. Call connect() first.")
         
         try:
@@ -325,7 +325,7 @@ class StarlinkClient:
             >>> if client.reboot_dish():
             ...     print("Dish is rebooting...")
         """
-        if not self._channel and not self.use_remote:
+        if not self.use_remote and not self._channel:
             raise StarlinkConnectionError("Not connected. Call connect() first.")
         
         try:
@@ -352,7 +352,7 @@ class StarlinkClient:
             >>> config = DishConfig(snow_melt_mode_enabled=True)
             >>> client.set_dish_config(config)
         """
-        if not self._channel and not self.use_remote:
+        if not self.use_remote and not self._channel:
             raise StarlinkConnectionError("Not connected. Call connect() first.")
         
         try:
@@ -372,7 +372,7 @@ class StarlinkClient:
         Raises:
             StarlinkOperationError: If the operation fails
         """
-        if not self._channel and not self.use_remote:
+        if not self.use_remote and not self._channel:
             raise StarlinkConnectionError("Not connected. Call connect() first.")
         
         try:
@@ -405,7 +405,7 @@ class StarlinkClient:
             >>> else:
             ...     print(f"H3 Cell: {location.h3_cell}")
         """
-        if not self._channel and not self.use_remote:
+        if not self.use_remote and not self._channel:
             raise StarlinkConnectionError("Not connected. Call connect() first.")
         
         try:
@@ -444,7 +444,7 @@ class StarlinkClient:
             >>> for client in wifi.connected_clients:
             ...     print(f"  - {client.hostname or client.mac_address}")
         """
-        if not self._channel and not self.use_remote:
+        if not self.use_remote and not self._channel:
             raise StarlinkConnectionError("Not connected. Call connect() first.")
         
         try:
@@ -487,7 +487,7 @@ class StarlinkClient:
             >>> config = WiFiConfig(ssid="MyStarlink", password="NewPassword123")
             >>> client.set_wifi_config(config)
         """
-        if not self._channel and not self.use_remote:
+        if not self.use_remote and not self._channel:
             raise StarlinkConnectionError("Not connected. Call connect() first.")
         
         # Validate configuration

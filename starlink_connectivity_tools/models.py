@@ -168,10 +168,7 @@ class DishConfig:
     
     def is_power_saving(self) -> bool:
         """Check if any power saving features are enabled."""
-        return (
-            self.power_save_mode_enabled is True or
-            (self.snow_melt_mode_enabled is False and self.power_save_mode_enabled is not False)
-        )
+        return self.power_save_mode_enabled is True
 
 
 @dataclass
