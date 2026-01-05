@@ -82,7 +82,7 @@ class SpaceSafetyAPI:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise Exception(f"Failed to submit ephemeris: {str(e)}")
+            raise Exception(f"Failed to submit ephemeris: {str(e)}") from e
     
     def submit_ephemeris_file(self, file_path: str, file_format: str = "oem") -> Dict[str, Any]:
         """
@@ -117,7 +117,7 @@ class SpaceSafetyAPI:
         except FileNotFoundError:
             raise FileNotFoundError(f"Ephemeris file not found: {file_path}")
         except requests.exceptions.RequestException as e:
-            raise Exception(f"Failed to upload ephemeris file: {str(e)}")
+            raise Exception(f"Failed to upload ephemeris file: {str(e)}") from e
     
     def screen_conjunction(self, satellite_id: str, time_window: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
         """
@@ -162,7 +162,7 @@ class SpaceSafetyAPI:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise Exception(f"Failed to screen for conjunctions: {str(e)}")
+            raise Exception(f"Failed to screen for conjunctions: {str(e)}") from e
     
     def get_starlink_constellation_data(self, filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """
@@ -189,7 +189,7 @@ class SpaceSafetyAPI:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise Exception(f"Failed to retrieve constellation data: {str(e)}")
+            raise Exception(f"Failed to retrieve constellation data: {str(e)}") from e
     
     def get_screening_status(self, submission_id: str) -> Dict[str, Any]:
         """
@@ -217,7 +217,7 @@ class SpaceSafetyAPI:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise Exception(f"Failed to get screening status: {str(e)}")
+            raise Exception(f"Failed to get screening status: {str(e)}") from e
     
     def close(self):
         """Close the HTTP session."""
