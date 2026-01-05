@@ -1,0 +1,26 @@
+# Starlink Monitor Configuration Example
+
+# Monitoring interval (seconds)
+check_interval: 60
+
+# Logging configuration
+log_file: starlink_connectivity.log
+log_max_bytes: 10485760  # 10 MB
+log_backup_count: 5
+
+# Connectivity health thresholds
+min_uptime_seconds: 300  # 5 minutes
+max_ping_latency_ms: 100
+max_ping_drop_rate: 0.05  # 5%
+min_download_mbps: 50
+min_upload_mbps: 5
+max_obstruction_percentage: 5
+
+# Automated action thresholds
+consecutive_failures_before_reboot: 3
+
+# Notes:
+# - Adjust thresholds based on your specific requirements
+# - In crisis scenarios, you may want to lower the min speeds
+# - Consider increasing consecutive_failures_before_reboot to avoid unnecessary reboots
+# - For areas with frequent obstructions (trees, buildings), increase max_obstruction_percentage
