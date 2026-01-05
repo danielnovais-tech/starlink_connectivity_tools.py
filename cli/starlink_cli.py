@@ -12,8 +12,9 @@ import json
 from datetime import datetime
 from typing import Dict, List
 
-# Add parent directory to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Ensure proper import path when running as a script
+if __name__ == "__main__":
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.starlink_monitor import StarlinkMonitor
 from src.connection_manager import SatelliteConnectionManager

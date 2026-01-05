@@ -36,10 +36,14 @@ class SatelliteConnectionManager:
         self.crisis_mode = False
         self.connection_metrics: Optional[ConnectionMetrics] = None
         
-        # Simulated Starlink monitor
+        # Import and initialize Starlink monitor if enabled
         if enable_starlink:
-            from src.starlink_monitor import StarlinkMonitor
-            self.starlink_monitor = StarlinkMonitor(host=starlink_host)
+            try:
+                from src.starlink_monitor import StarlinkMonitor
+                self.starlink_monitor = StarlinkMonitor(host=starlink_host)
+            except ImportError as e:
+                print(f"Warning: Could not import StarlinkMonitor: {e}")
+                self.starlink_monitor = None
         else:
             self.starlink_monitor = None
     

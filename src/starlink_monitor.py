@@ -63,7 +63,7 @@ class StarlinkMonitor:
     def _initialize(self):
         """Initialize connection to Starlink router"""
         try:
-            # Simulate initialization - in real implementation, this would connect to the router
+            # TODO: Replace with actual Starlink router connection logic
             # For now, we'll mark as initialized to allow the CLI to work
             self.initialized = True
             return True
@@ -83,7 +83,7 @@ class StarlinkMonitor:
             return None
         
         try:
-            # Simulate getting metrics - in real implementation, this would query the router
+            # TODO: Replace with actual Starlink router API calls
             # For demo purposes, return mock data
             metrics = StarlinkMetrics(
                 timestamp=time.time(),
@@ -230,7 +230,7 @@ class StarlinkMonitor:
             return False
         
         try:
-            # Simulate reboot command - in real implementation, this would send the command
+            # TODO: Replace with actual reboot command implementation
             print("Reboot command would be sent to Starlink dish")
             return True
         except Exception as e:
