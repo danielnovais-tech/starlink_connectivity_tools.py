@@ -14,8 +14,8 @@ A Python-based toolkit for optimizing satellite connectivity in crisis scenarios
 ## Installation
 
 ```bash
-git clone https://github.com/yourusername/starlink-connectivity-tools.git
-cd starlink-connectivity-tools
+git clone https://github.com/danielnovais-tech/starlink_connectivity_tools.py.git
+cd starlink_connectivity_tools.py
 pip install -r requirements.txt
 ```
 
@@ -139,8 +139,8 @@ starlink:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/starlink-connectivity-tools.git
-cd starlink-connectivity-tools
+git clone https://github.com/danielnovais-tech/starlink_connectivity_tools.py.git
+cd starlink_connectivity_tools.py
 
 # Create virtual environment
 python -m venv venv
@@ -194,9 +194,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 For issues, questions, or contributions:
-- Open an issue on GitHub
-- Contact: [your-email@example.com]
-- Documentation: [https://docs.example.com]
+- Open an issue on [GitHub](https://github.com/danielnovais-tech/starlink_connectivity_tools.py/issues)
+- Contact: daniel.novais@sempreceub.com
+- Documentation: [GitHub Repository](https://github.com/danielnovais-tech/starlink_connectivity_tools.py)
 
 ## Roadmap
 
