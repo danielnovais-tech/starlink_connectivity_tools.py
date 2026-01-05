@@ -1,3 +1,8 @@
+"""
+Starlink Connectivity Tools Package
+"""
+
+__version__ = "0.1.0"
 """Starlink Connectivity Tools - Core Implementation"""
 
 from .power_manager import PowerManager, PowerMode, PowerProfile
