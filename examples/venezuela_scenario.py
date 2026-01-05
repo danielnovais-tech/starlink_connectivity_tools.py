@@ -10,9 +10,10 @@ workarounds, and reliable emergency communications.
 import sys
 import time
 import logging
+from pathlib import Path
 
 # Add parent directory to path
-sys.path.insert(0, '/home/runner/work/starlink_connectivity_tools.py/starlink_connectivity_tools.py')
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.connection_manager import ConnectionManager
 from src.power_manager import PowerManager, PowerMode

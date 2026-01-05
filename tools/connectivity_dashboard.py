@@ -10,9 +10,10 @@ import sys
 import json
 from datetime import datetime
 from typing import Dict, Any
+from pathlib import Path
 
 # Add parent directory to path to import src modules
-sys.path.insert(0, '/home/runner/work/starlink_connectivity_tools.py/starlink_connectivity_tools.py')
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.starlink_monitor import StarlinkMonitor
 from src.connection_manager import ConnectionManager

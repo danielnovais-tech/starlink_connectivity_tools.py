@@ -6,6 +6,7 @@ Implements power-saving modes and monitors energy usage.
 """
 
 import logging
+import time
 from typing import Dict, Any, Optional
 from enum import Enum
 from dataclasses import dataclass
@@ -198,6 +199,3 @@ class PowerManager:
         # Keep only last 100 entries
         if len(self.power_history) > 100:
             self.power_history = self.power_history[-100:]
-
-
-import time

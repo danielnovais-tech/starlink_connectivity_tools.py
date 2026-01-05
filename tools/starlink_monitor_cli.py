@@ -11,9 +11,10 @@ import time
 import argparse
 import logging
 from datetime import datetime
+from pathlib import Path
 
 # Add parent directory to path to import src modules
-sys.path.insert(0, '/home/runner/work/starlink_connectivity_tools.py/starlink_connectivity_tools.py')
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.starlink_monitor import StarlinkMonitor
 from src.diagnostics import Diagnostics
