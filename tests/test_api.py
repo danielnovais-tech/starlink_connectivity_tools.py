@@ -101,10 +101,10 @@ class TestRoutersAPI(unittest.TestCase):
     @patch.object(StarlinkClient, 'get')
     def test_get_router_config(self, mock_get):
         """Test get_router_config calls correct endpoint"""
-        mock_get.return_value = {"ssid": "StarLink-WiFi", "password": "secret"}
+        mock_get.return_value = {"ssid": "Starlink-WiFi", "password": "secret"}
         result = self.routers_api.get_router_config("router_123")
         mock_get.assert_called_once_with('/routers/router_123/config')
-        self.assertEqual(result["ssid"], "StarLink-WiFi")
+        self.assertEqual(result["ssid"], "Starlink-WiFi")
 
 
 class TestServiceLinesAPI(unittest.TestCase):
