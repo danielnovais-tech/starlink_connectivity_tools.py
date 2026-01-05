@@ -1,184 +1,254 @@
 # Starlink Connectivity Tools
 
-A Python tool to monitor and optimize Starlink satellite connectivity in crisis scenarios.
-
-This script uses the `starlink-client` library to periodically check network stats, detect connectivity issues, and take automated actions like rebooting the dish if needed. Inspired by use cases in areas like Venezuela where reliable internet is critical during crises.
+A Python library for managing Starlink satellite connections, optimizing bandwidth usage, handling failover scenarios, and managing power consumption.
 
 ## Features
 
-- **Continuous Monitoring**: Periodically checks Starlink network statistics
-- **Health Detection**: Monitors multiple connectivity metrics against configurable thresholds
-- **Automated Recovery**: Automatically reboots the dish after consecutive failures
-- **Comprehensive Logging**: Logs all connectivity data to rotating log files for historical tracking
-- **Configurable Thresholds**: Customize what constitutes a connectivity issue
-- **Crisis-Ready**: Designed for scenarios where reliable internet is critical
+- **Connection Management**: Establish, monitor, and manage Starlink satellite connections
+- **Bandwidth Optimization**: Optimize bandwidth usage and manage network traffic efficiently
+- **Failover Handling**: Automatic failover to backup connections when primary connection fails
+- **Power Management**: Manage power consumption with low-power modes for battery-powered scenarios
+- **Diagnostics**: Comprehensive diagnostic tools and health checks for Starlink connections
+
+## Project Structure
+
+```
+starlink-connectivity-tools/
+├── src/
+│   ├── __init__.py
+│   ├── connection_manager.py      # Connection establishment and monitoring
+│   ├── bandwidth_optimizer.py     # Bandwidth optimization and traffic management
+│   ├── failover_handler.py        # Automatic failover to backup connections
+│   ├── power_manager.py           # Power consumption management
+│   ├── diagnostics.py             # Diagnostic tools and health checks
+│   └── config/
+│       └── settings.py            # Configuration management
+├── tests/
+│   ├── test_connection_manager.py # Tests for connection manager
+│   └── test_bandwidth_optimizer.py # Tests for bandwidth optimizer
+├── examples/
+│   ├── emergency_mode.py          # Emergency mode configuration example
+│   └── low_power_mode.py          # Low power mode configuration example
+├── requirements.txt               # Project dependencies
+├── setup.py                       # Package setup configuration
+└── README.md                      # This file
+```
 
 ## Installation
 
-1. Clone this repository:
+### From Source
+
 ```bash
 git clone https://github.com/danielnovais-tech/starlink_connectivity_tools.py.git
 cd starlink_connectivity_tools.py
+pip install -e .
 ```
 
-2. Install required dependencies:
+### Development Installation
+
 ```bash
-pip install -r requirements.txt
+pip install -e ".[dev]"
 ```
 
-Or install the starlink-client library directly:
+## Quick Start
+
+### Basic Connection Management
+
+```python
+from src.connection_manager import ConnectionManager
+
+# Create a connection manager
+manager = ConnectionManager()
+
+# Connect to Starlink
+manager.connect()
+
+# Check connection status
+status = manager.get_status()
+print(f"Connected: {status['connected']}")
+
+# Disconnect
+manager.disconnect()
+```
+
+### Bandwidth Optimization
+
+```python
+from src.bandwidth_optimizer import BandwidthOptimizer
+
+# Create bandwidth optimizer
+optimizer = BandwidthOptimizer(max_bandwidth=100)  # 100 Mbps limit
+
+# Enable optimization
+optimizer.enable_optimization()
+
+# Set bandwidth limit
+optimizer.set_bandwidth_limit(50)
+
+# Get current usage
+usage = optimizer.get_current_usage()
+print(f"Optimization enabled: {usage['optimization_enabled']}")
+```
+
+### Failover Configuration
+
+```python
+from src.failover_handler import FailoverHandler
+
+# Create failover handler
+failover = FailoverHandler()
+
+# Enable automatic failover
+failover.enable_failover()
+
+# Add backup connections
+failover.add_backup_connection({"type": "cellular", "priority": 1})
+failover.add_backup_connection({"type": "satellite_backup", "priority": 2})
+
+# Trigger manual failover if needed
+result = failover.trigger_failover()
+print(f"Failover status: {result['status']}")
+```
+
+### Power Management
+
+```python
+from src.power_manager import PowerManager
+
+# Create power manager
+power_mgr = PowerManager()
+
+# Enable low power mode
+power_mgr.enable_low_power_mode()
+
+# Get power status
+status = power_mgr.get_power_status()
+print(f"Power mode: {status['power_mode']}")
+print(f"Power consumption: {status['power_consumption']}%")
+
+# Estimate battery runtime
+runtime = power_mgr.estimate_runtime(battery_capacity=500)  # 500 Wh battery
+print(f"Estimated runtime: {runtime:.1f} hours")
+```
+
+### Diagnostics
+
+```python
+from src.diagnostics import Diagnostics
+
+# Create diagnostics instance
+diag = Diagnostics()
+
+# Run health check
+health = diag.run_health_check()
+print(f"Health status: {health['status']}")
+
+# Test connectivity
+connectivity = diag.test_connectivity()
+print(f"Connectivity test: {connectivity['status']}")
+
+# Get signal strength
+signal = diag.get_signal_strength()
+print(f"Signal strength: {signal['signal_strength']}")
+```
+
+## Examples
+
+### Emergency Mode
+
+Run the emergency mode example for automatic failover configuration:
+
 ```bash
-pip install starlink-client
+python examples/emergency_mode.py
 ```
 
-## Usage
+This example demonstrates:
+- Extended connection timeout and retry settings
+- Automatic failover with multiple backup connections
+- Health check monitoring
 
-### Basic Usage
+### Low Power Mode
 
-Run the monitor with default settings:
+Run the low power mode example for battery-powered scenarios:
+
 ```bash
-python starlink_monitor.py
+python examples/low_power_mode.py
 ```
 
-### Advanced Usage
+This example demonstrates:
+- Reduced power consumption settings
+- Bandwidth limiting and optimization
+- Battery runtime estimation
 
-Customize monitoring parameters:
+## Running Tests
+
 ```bash
-python starlink_monitor.py --interval 30 --max-latency 150 --min-download 25
+# Run all tests
+python -m pytest tests/
+
+# Run with coverage
+python -m pytest --cov=src tests/
+
+# Run specific test file
+python -m pytest tests/test_connection_manager.py
 ```
-
-### Command Line Options
-
-- `--interval SECONDS`: Seconds between connectivity checks (default: 60)
-- `--log-file PATH`: Path to log file (default: starlink_connectivity.log)
-- `--max-latency MS`: Maximum acceptable ping latency in milliseconds (default: 100)
-- `--min-download MBPS`: Minimum acceptable download speed in Mbps (default: 50)
-- `--failures-before-reboot COUNT`: Number of consecutive failures before triggering reboot (default: 3)
-
-### Example Commands
-
-Monitor with shorter interval for critical scenarios:
-```bash
-python starlink_monitor.py --interval 30 --failures-before-reboot 5
-```
-
-Monitor with relaxed thresholds for challenging conditions:
-```bash
-python starlink_monitor.py --max-latency 200 --min-download 10
-```
-
-Use a custom log file location:
-```bash
-python starlink_monitor.py --log-file /var/log/starlink/monitor.log
-```
-
-## Monitored Metrics
-
-The tool monitors the following connectivity metrics:
-
-1. **Uptime**: Ensures the dish has been stable for a minimum period
-2. **Ping Latency**: Checks for acceptable response times (default: < 100ms)
-3. **Ping Drop Rate**: Monitors packet loss (default: < 5%)
-4. **Download Speed**: Ensures minimum throughput (default: > 50 Mbps)
-5. **Upload Speed**: Ensures minimum upload capability (default: > 5 Mbps)
-6. **Obstruction Percentage**: Monitors physical obstructions (default: < 5%)
 
 ## Configuration
 
-You can customize thresholds by modifying the `DEFAULT_CONFIG` dictionary in `starlink_monitor.py` or by using command-line arguments.
-
-See `config.example.yml` for a reference configuration file with all available options.
-
-### Default Thresholds
+The library uses a centralized configuration system in `src/config/settings.py`:
 
 ```python
-check_interval: 60 seconds
-max_ping_latency_ms: 100
-max_ping_drop_rate: 5%
-min_download_mbps: 50
-min_upload_mbps: 5
-max_obstruction_percentage: 5%
-consecutive_failures_before_reboot: 3
+from src.config.settings import Settings
+
+# Create settings with custom config
+config = {
+    "connection": {
+        "timeout": 60,
+        "retry_attempts": 5,
+    },
+    "power": {
+        "default_mode": "low_power",
+    },
+}
+settings = Settings(custom_config=config)
+
+# Get configuration values
+timeout = settings.get("connection.timeout")
+
+# Update configuration
+settings.set("connection.retry_attempts", 3)
 ```
 
-## Logging
+## Development
 
-The tool maintains detailed logs in rotating log files:
-- **Log file**: `starlink_connectivity.log` (configurable)
-- **Max size**: 10 MB per file
-- **Backup count**: 5 files
-- **Format**: Timestamp, level, and detailed message
+### Code Style
 
-Logs include:
-- Periodic connectivity statistics
-- Health check results
-- Issue detection with specific metrics
-- Automated action triggers (reboots)
-- Error conditions
+This project follows Python best practices:
+- PEP 8 style guide
+- Type hints where appropriate
+- Comprehensive docstrings
 
-## Use Cases
+### Running Linters
 
-### Crisis Scenarios
+```bash
+# Format code with black
+black src/ tests/ examples/
 
-In areas experiencing political or social crises where internet connectivity is vital:
-- Monitor connection stability 24/7
-- Automatically recover from connectivity issues
-- Maintain historical logs for analysis
-- Ensure critical communications remain available
+# Check code with flake8
+flake8 src/ tests/ examples/
 
-### Remote Locations
-
-For Starlink installations in remote areas:
-- Detect and resolve issues without physical access
-- Monitor environmental impacts (obstructions)
-- Track performance trends over time
-
-### Business Continuity
-
-For organizations relying on Starlink for connectivity:
-- Ensure SLA compliance
-- Proactive issue detection
-- Automated recovery reduces downtime
-
-## Requirements
-
-- Python 3.7+
-- `starlink-client` library
-- Network access to Starlink dish (typically via local network)
-
-## How It Works
-
-1. **Connection**: Establishes connection to the Starlink dish via the starlink-client library
-2. **Monitoring Loop**: Continuously retrieves network statistics at configured intervals
-3. **Health Check**: Compares metrics against configured thresholds
-4. **Issue Detection**: Logs any metrics that fall outside acceptable ranges
-5. **Automated Action**: After consecutive failures, triggers dish reboot
-6. **Recovery**: Waits for dish to stabilize after reboot before resuming monitoring
-
-## Troubleshooting
-
-### Cannot connect to Starlink dish
-- Ensure you're on the same network as the Starlink dish
-- Check that the dish is powered on and operational
-- Verify the starlink-client library is correctly installed
-
-### Too many false positives
-- Adjust thresholds to match your environment
-- Increase `consecutive_failures_before_reboot` to reduce sensitivity
-- Consider local factors (weather, obstructions) when setting thresholds
-
-### Logs growing too large
-- Adjust `log_max_bytes` and `log_backup_count` in the configuration
-- Consider implementing external log rotation or archival
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit issues or pull requests.
+# Type checking with mypy
+mypy src/
+```
 
 ## License
 
-See LICENSE file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Acknowledgments
+## Contributing
 
-Inspired by the need for reliable internet connectivity in crisis scenarios, particularly in regions like Venezuela where communication infrastructure is critical for safety and coordination.
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## Support
+
+For issues, questions, or contributions, please visit the [GitHub repository](https://github.com/danielnovais-tech/starlink_connectivity_tools.py).
