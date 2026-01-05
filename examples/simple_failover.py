@@ -5,7 +5,14 @@ This example shows the exact use case from the problem statement.
 """
 
 import time
+import logging
 from starlink_connectivity_tools import FailoverHandler
+
+# Configure logging for the application
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 
 def simulate_connection_failure():

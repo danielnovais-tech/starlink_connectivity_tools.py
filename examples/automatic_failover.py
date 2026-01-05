@@ -7,7 +7,14 @@ switch to a backup connection when the primary connection fails.
 
 import time
 import random
+import logging
 from starlink_connectivity_tools import FailoverHandler
+
+# Configure logging for the application
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 
 # Simulated connection health check

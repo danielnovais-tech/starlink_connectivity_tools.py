@@ -44,18 +44,8 @@ class FailoverHandler:
         self._last_check_time = 0.0
         self._failover_history = []
         
-        # Setup logging
+        # Setup logging (applications should configure handlers)
         self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.INFO)
-        
-        # Add console handler if none exists
-        if not self.logger.handlers:
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter(
-                '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-            )
-            handler.setFormatter(formatter)
-            self.logger.addHandler(handler)
     
     def should_failover(self) -> bool:
         """
@@ -176,9 +166,16 @@ class FailoverHandler:
         """
         return self._failover_history.copy()
     
-    def reset(self) -> None:
-        """Reset the failover handler to initial state."""
+    def reset(self, clear_history: bool = False) -> None:
+        """
+        Reset the failover handler to initial state.
+        
+        Args:
+            clear_history: If True, also clear the failover history (default: False)
+        """
         self._failure_count = 0
         self._current_state = ConnectionState.PRIMARY
         self._last_check_time = 0.0
+        if clear_history:
+            self._failover_history = []
         self.logger.info("Failover handler reset to initial state")
