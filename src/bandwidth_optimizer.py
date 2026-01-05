@@ -50,6 +50,9 @@ class BandwidthOptimizer:
         self.allocations: Dict[str, BandwidthAllocation] = {}
         self.crisis_mode = False
         
+        # Crisis mode configuration
+        self.allowed_crisis_priorities = {TrafficPriority.CRITICAL, TrafficPriority.HIGH}
+        
         # Crisis mode priority destinations
         self.critical_destinations = {
             "emergency.comms",
@@ -119,7 +122,7 @@ class BandwidthOptimizer:
         priority = self._determine_priority(destination)
         
         # In crisis mode, only allow critical traffic
-        if self.crisis_mode and priority not in [TrafficPriority.CRITICAL, TrafficPriority.HIGH]:
+        if self.crisis_mode and priority not in self.allowed_crisis_priorities:
             logger.warning(f"Denying non-critical allocation in crisis mode: {connection_id}")
             return 0.0
         
