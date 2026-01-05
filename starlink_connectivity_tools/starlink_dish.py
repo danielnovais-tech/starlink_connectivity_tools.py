@@ -14,7 +14,10 @@ class StarlinkDish:
     and status monitoring for demonstration purposes.
     """
     
-    def __init__(self, host="192.168.100.1", port=9200):
+    DEFAULT_HOST = "192.168.100.1"
+    DEFAULT_PORT = 9200
+    
+    def __init__(self, host=None, port=None):
         """
         Initialize connection to Starlink dish.
         
@@ -22,8 +25,8 @@ class StarlinkDish:
             host: IP address of the Starlink dish (default: 192.168.100.1)
             port: gRPC port (default: 9200)
         """
-        self.host = host
-        self.port = port
+        self.host = host or self.DEFAULT_HOST
+        self.port = port or self.DEFAULT_PORT
         self.connected = False
         
     def connect(self):

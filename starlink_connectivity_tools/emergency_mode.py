@@ -14,6 +14,11 @@ class EmergencyMode:
     for Starlink connectivity in emergency scenarios.
     """
     
+    # Configuration constants
+    SNR_THRESHOLD = 8.0  # Signal-to-noise ratio threshold for good signal quality
+    REBOOT_WAIT_TIME = 5  # Seconds to wait after initiating reboot
+    POST_REBOOT_CHECK_DELAY = 2  # Seconds to wait before checking connectivity after reboot
+    
     def __init__(self, dish):
         """
         Initialize emergency mode handler.
@@ -65,7 +70,7 @@ class EmergencyMode:
             assessment = {
                 "operational": status["state"] == "CONNECTED",
                 "obstructed": status.get("obstructed", False),
-                "signal_quality": "GOOD" if status.get("snr", 0) > 8 else "POOR",
+                "signal_quality": "GOOD" if status.get("snr", 0) > self.SNR_THRESHOLD else "POOR",
                 "latency": status.get("ping_latency", 0),
                 "alerts": alerts,
                 "status": status
@@ -112,11 +117,11 @@ class EmergencyMode:
             self.log("Attempting dish reboot to clear alerts...", "WARNING")
             try:
                 self.dish.reboot()
-                self.log("Reboot initiated, waiting for dish to come back online...", "INFO")
-                time.sleep(5)  # Wait for reboot
+                self.log(f"Reboot initiated, waiting {self.REBOOT_WAIT_TIME} seconds for dish to come back online...", "INFO")
+                time.sleep(self.REBOOT_WAIT_TIME)  # Wait for reboot
                 
                 # Re-check connectivity
-                time.sleep(2)
+                time.sleep(self.POST_REBOOT_CHECK_DELAY)
                 new_assessment = self.check_connectivity()
                 
                 if new_assessment and new_assessment["operational"]:
