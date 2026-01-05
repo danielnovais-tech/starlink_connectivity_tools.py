@@ -4,7 +4,7 @@ A robust framework for maintaining satellite connectivity in challenging crisis 
 
 ## Acknowledgments
 
-This project was inspired by connectivity challenges in Venezuela and other crisis scenarios where reliable communication is critical for emergency response and humanitarian aid.
+This project was inspired by connectivity challenges in Venezuela and other crisis scenarios where reliable communications are critical for emergency response and humanitarian aid.
 
 ### Key Features Implemented
 
@@ -15,7 +15,7 @@ This project was inspired by connectivity challenges in Venezuela and other cris
 
 #### 2. Intelligent Bandwidth Allocation
 - Priority-based bandwidth allocation
-- Critical communications (medical, SOS) get guaranteed bandwidth
+- Critical communications (medical, SOS) receive guaranteed bandwidth
 - Dynamic adjustment based on available bandwidth
 
 #### 3. Robust Failover System
