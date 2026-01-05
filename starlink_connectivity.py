@@ -16,6 +16,7 @@ import json
 import logging
 import os
 import signal
+import subprocess
 import sys
 import threading
 import time
@@ -23,6 +24,10 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 import statistics
+
+
+# Constants
+PACKET_LOSS_DEGRADED_THRESHOLD = 0.25  # 25% packet loss threshold for degraded status
 
 
 # Default configuration
@@ -127,8 +132,6 @@ class StarlinkMonitor:
         Returns:
             Dictionary with connectivity status and metrics
         """
-        import subprocess
-        
         result = {
             'timestamp': datetime.now().isoformat(),
             'status': 'unknown',
@@ -159,26 +162,34 @@ class StarlinkMonitor:
                 output = process.stdout
                 
                 # Extract average latency (platform-specific parsing)
-                if sys.platform == 'win32':
-                    # Windows: "Average = XXXms"
-                    if 'Average' in output:
-                        avg_line = [l for l in output.split('\n') if 'Average' in l][0]
-                        latency = float(avg_line.split('=')[-1].replace('ms', '').strip())
-                        result['latency_ms'] = latency
-                else:
-                    # Linux/Mac: "min/avg/max/stddev = ..."
-                    if 'avg' in output or 'rtt' in output:
-                        stats_line = [l for l in output.split('\n') if 'avg' in l or 'rtt' in l]
-                        if stats_line:
-                            parts = stats_line[0].split('=')[-1].strip().split('/')
-                            if len(parts) >= 2:
-                                result['latency_ms'] = float(parts[1])
+                try:
+                    if sys.platform == 'win32':
+                        # Windows: "Average = XXXms"
+                        if 'Average' in output:
+                            avg_lines = [l for l in output.split('\n') if 'Average' in l]
+                            if avg_lines:
+                                latency = float(avg_lines[0].split('=')[-1].replace('ms', '').strip())
+                                result['latency_ms'] = latency
+                    else:
+                        # Linux/Mac: "min/avg/max/stddev = ..."
+                        if 'avg' in output or 'rtt' in output:
+                            stats_lines = [l for l in output.split('\n') if 'avg' in l or 'rtt' in l]
+                            if stats_lines:
+                                parts = stats_lines[0].split('=')[-1].strip().split('/')
+                                if len(parts) >= 2:
+                                    result['latency_ms'] = float(parts[1])
+                except (ValueError, IndexError) as e:
+                    self.logger.debug(f"Could not parse latency from ping output: {e}")
                 
                 # Check for packet loss
-                if 'packet loss' in output.lower():
-                    loss_line = [l for l in output.split('\n') if 'packet loss' in l.lower()][0]
-                    loss_pct = float(loss_line.split('%')[0].split()[-1])
-                    result['packet_loss'] = loss_pct / 100.0
+                try:
+                    if 'packet loss' in output.lower():
+                        loss_lines = [l for l in output.split('\n') if 'packet loss' in l.lower()]
+                        if loss_lines:
+                            loss_pct = float(loss_lines[0].split('%')[0].split()[-1])
+                            result['packet_loss'] = loss_pct / 100.0
+                except (ValueError, IndexError) as e:
+                    self.logger.debug(f"Could not parse packet loss from ping output: {e}")
                 
                 # Determine status
                 if result['packet_loss'] == 0 and result['latency_ms']:
@@ -186,7 +197,7 @@ class StarlinkMonitor:
                         result['status'] = 'excellent'
                     else:
                         result['status'] = 'good'
-                elif result['packet_loss'] < 0.25:
+                elif result['packet_loss'] < PACKET_LOSS_DEGRADED_THRESHOLD:
                     result['status'] = 'degraded'
                 else:
                     result['status'] = 'poor'
@@ -364,8 +375,8 @@ class StarlinkMonitor:
             'generated_at': datetime.now().isoformat(),
             'crisis_mode': self.crisis_mode,
             'period': {
-                'start': history[0]['timestamp'] if history else None,
-                'end': history[-1]['timestamp'] if history else None,
+                'start': history[0]['timestamp'],
+                'end': history[-1]['timestamp'],
                 'total_checks': total_checks
             },
             'connectivity': {
@@ -599,8 +610,9 @@ Examples:
             return 0 if success else 1
         
         elif args.command == 'report':
-            if hasattr(args, 'export_logs') and args.export_logs:
-                monitor.export_logs(args.export_logs)
+            export_logs_file = getattr(args, 'export_logs', None)
+            if export_logs_file:
+                monitor.export_logs(export_logs_file)
             
             output = getattr(args, 'output', None)
             monitor.generate_report(output_file=output)
