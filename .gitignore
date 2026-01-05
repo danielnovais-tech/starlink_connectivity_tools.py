@@ -211,3 +211,4 @@ starlink_monitor.log
 *.json
 !starlink_config.example.json
 !requirements.txt
+my_config.json
