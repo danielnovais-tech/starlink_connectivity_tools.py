@@ -1,7 +1,5 @@
 """Main client for communicating with Starlink devices."""
 
-import socket
-import json
 from typing import Optional
 from .models import NetworkStats
 
@@ -120,7 +118,7 @@ class StarlinkClient:
                 obstruction_percentage=obstruction_percentage,
                 connected=connected
             )
-        except Exception as e:
+        except (OSError, TimeoutError, ValueError, KeyError) as e:
             raise ConnectionError(f"Failed to retrieve network stats: {e}")
     
     def reboot_dish(self) -> bool:
@@ -143,7 +141,7 @@ class StarlinkClient:
         try:
             response = self._send_grpc_request("reboot")
             return response.get("status") == "rebooting"
-        except Exception as e:
+        except (OSError, TimeoutError, ValueError, KeyError) as e:
             raise ConnectionError(f"Failed to reboot dish: {e}")
     
     def __repr__(self) -> str:
