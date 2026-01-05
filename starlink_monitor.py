@@ -14,8 +14,7 @@ import time
 import argparse
 import sys
 from logging.handlers import RotatingFileHandler
-from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple, List
 
 try:
     from starlink import StarlinkClient
@@ -106,7 +105,7 @@ class StarlinkMonitor:
             self.logger.error(f"Failed to retrieve stats: {e}")
             return None
     
-    def check_connectivity_health(self, stats: Dict) -> tuple[bool, list]:
+    def check_connectivity_health(self, stats: Dict) -> Tuple[bool, List[str]]:
         """
         Check if connectivity meets health thresholds.
         
