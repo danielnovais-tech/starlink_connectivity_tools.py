@@ -4,6 +4,8 @@ Updated connection manager with Starlink integration
 import time
 import threading
 import logging
+import json
+import random
 from dataclasses import dataclass, asdict
 from typing import Dict, List, Optional, Tuple, Union
 from enum import Enum
@@ -49,7 +51,7 @@ class ConnectionMetrics:
     
     @classmethod
     def from_starlink_metrics(cls, starlink_metrics: 'StarlinkMetrics') -> 'ConnectionMetrics':
-        """Convert StarlinkMetrics to ConnectionMetrics"""
+        """Convert StarlinkMetrics to ConnectionMetrics."""
         return cls(
             latency=starlink_metrics.latency,
             jitter=starlink_metrics.jitter,
@@ -104,7 +106,6 @@ class SatelliteConnectionManager:
     def load_config(self, config_path: str):
         """Load configuration from JSON file"""
         try:
-            import json
             with open(config_path, 'r') as f:
                 config = json.load(f)
                 self.minimum_viable_bandwidth = config.get(
@@ -163,7 +164,6 @@ class SatelliteConnectionManager:
         """
         Check if satellite is visible (simulated)
         """
-        import random
         return random.random() > 0.3
     
     def connect(self, connection_id: str) -> bool:
@@ -278,9 +278,6 @@ class SatelliteConnectionManager:
                 return ConnectionMetrics.from_starlink_metrics(starlink_metrics)
         
         # Simulated metrics for other connections
-        import random
-        import time
-        
         return ConnectionMetrics(
             latency=random.uniform(20, 100),
             jitter=random.uniform(1, 10),
@@ -410,7 +407,12 @@ class SatelliteConnectionManager:
         return 0
     
     def reboot_active_connection(self) -> bool:
-        """Reboot the active connection (useful for Starlink)"""
+        """
+        Reboot the active connection (useful for Starlink).
+        
+        Note: This method blocks for ~5 minutes during Starlink reboot.
+        Consider calling in a separate thread for non-blocking operation.
+        """
         if not self.active_connection:
             logger.warning("No active connection to reboot")
             return False
@@ -422,7 +424,9 @@ class SatelliteConnectionManager:
                 # Update status
                 self.connections[self.starlink_connection_id] = ConnectionStatus.SCANNING
                 logger.info("Starlink reboot initiated. Will reconnect in 5 minutes.")
-                time.sleep(300)  # Wait 5 minutes
+                # NOTE: Blocking sleep - dish needs ~5 minutes to reboot
+                # For non-blocking operation, call this method in a separate thread
+                time.sleep(300)  # Wait 5 minutes for dish to reboot
                 return self.connect(self.starlink_connection_id)
             return False
         
