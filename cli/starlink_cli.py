@@ -13,6 +13,11 @@ import logging
 from datetime import datetime
 from typing import Dict, List
 
+# Exit codes
+EXIT_CODE_SUCCESS = 0
+EXIT_CODE_ERROR = 1
+EXIT_CODE_INTERRUPT = 130  # Standard exit code for SIGINT
+
 # Ensure proper import path when running as a script
 if __name__ == "__main__":
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -293,7 +298,10 @@ def setup_logging(log_level: str = None, log_file: str = None):
     
     if file_path:
         try:
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            # Only create directory if file_path contains a directory component
+            dir_path = os.path.dirname(file_path)
+            if dir_path:
+                os.makedirs(dir_path, exist_ok=True)
             handlers.append(logging.FileHandler(file_path))
         except Exception as e:
             print(f"Warning: Failed to setup file logging: {e}", file=sys.stderr)
@@ -380,7 +388,7 @@ Examples:
     except Exception as e:
         logger.critical(f"Failed to initialize CLI: {e}", exc_info=True)
         print(f"\n❌ Fatal Error: {e}", file=sys.stderr)
-        sys.exit(1)
+        sys.exit(EXIT_CODE_ERROR)
     
     # Execute command
     try:
@@ -413,11 +421,11 @@ Examples:
     except KeyboardInterrupt:
         logger.info("Operation cancelled by user")
         print("\n\nOperation cancelled by user.")
-        sys.exit(130)  # Standard exit code for SIGINT
+        sys.exit(EXIT_CODE_INTERRUPT)
     except Exception as e:
         logger.error(f"Command failed: {e}", exc_info=True)
         print(f"\n❌ Error: {e}", file=sys.stderr)
-        sys.exit(1)
+        sys.exit(EXIT_CODE_ERROR)
 
 
 if __name__ == "__main__":

@@ -232,7 +232,6 @@ class StarlinkMonitor:
     def stop_monitoring(self):
         """Stop continuous monitoring"""
         if not self.monitoring:
-            self.logger.warning("Monitoring not running")
             return
         
         self.logger.info("Stopping monitoring")

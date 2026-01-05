@@ -45,7 +45,7 @@ class SatelliteConnectionManager:
                 self.starlink_monitor = StarlinkMonitor(host=starlink_host)
                 self.logger.info("Starlink monitor initialized for connection manager")
             except ImportError as e:
-                self.logger.error(f"Could not import StarlinkMonitor: {e}")
+                self.logger.error(f"Could not import StarlinkMonitor: {e}. Starlink functionality will be disabled.")
                 self.starlink_monitor = None
         else:
             self.starlink_monitor = None
