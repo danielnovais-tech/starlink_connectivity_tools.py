@@ -18,6 +18,10 @@ def generate_report(hours):
     Args:
         hours (int): Number of hours to include in the report
     """
+    if hours <= 0:
+        print("Error: --hours must be a positive number", file=sys.stderr)
+        return 1
+    
     print(f"Generating performance report for the last {hours} hours...")
     print(f"Report timestamp: {datetime.now().isoformat()}")
     print(f"Time range: {(datetime.now() - timedelta(hours=hours)).isoformat()} to {datetime.now().isoformat()}")
@@ -84,7 +88,7 @@ Usage Examples:
         '--hours',
         type=int,
         required=True,
-        help='Number of hours to include in the report'
+        help='Number of hours to include in the report (must be positive)'
     )
     
     # Export command
