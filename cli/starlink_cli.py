@@ -9,6 +9,7 @@ import sys
 import os
 import time
 import json
+import logging
 from datetime import datetime
 from typing import Dict, List
 
@@ -18,17 +19,32 @@ if __name__ == "__main__":
 
 from src.starlink_monitor import StarlinkMonitor
 from src.connection_manager import SatelliteConnectionManager
+from src.config import Config
 
 
 class StarlinkCLI:
     """Command-line interface for Starlink monitoring"""
     
-    def __init__(self, host: str = "192.168.100.1"):
-        self.monitor = StarlinkMonitor(host=host)
-        self.connection_manager = SatelliteConnectionManager(
-            enable_starlink=True,
-            starlink_host=host
-        )
+    def __init__(self, host: str = None, config: Config = None):
+        """
+        Initialize CLI
+        
+        Args:
+            host: Starlink router IP address (overrides config)
+            config: Configuration object (creates default if None)
+        """
+        self.config = config or Config()
+        self.logger = logging.getLogger(__name__)
+        
+        try:
+            self.monitor = StarlinkMonitor(host=host, config=self.config)
+            self.connection_manager = SatelliteConnectionManager(
+                enable_starlink=True,
+                starlink_host=host or self.config.get('monitor.default_host', '192.168.100.1')
+            )
+        except Exception as e:
+            self.logger.error(f"Failed to initialize CLI: {e}", exc_info=True)
+            raise
         
         # Color codes for terminal output
         self.colors = {
@@ -56,47 +72,53 @@ class StarlinkCLI:
     
     def print_status(self, detailed: bool = False):
         """Print current Starlink status"""
-        metrics = self.monitor.get_metrics()
-        
-        if not metrics:
-            print(self.colorize("❌ Failed to get Starlink metrics", 'red'))
-            return
-        
-        self.print_header("STARLINK STATUS")
-        
-        # Basic status
-        status_color = 'green' if metrics.status == 'online' else 'red'
-        print(f"Status: {self.colorize(metrics.status.upper(), status_color)}")
-        print(f"Connected Satellites: {metrics.satellites_connected}")
-        print(f"Obstruction: {metrics.obstruction_percent:.1f}%")
-        
-        # Network metrics
-        print(f"\n{self.colors['bold']}Network Performance:{self.colors['reset']}")
-        print(f"  Download: {self.colorize(f'{metrics.download_speed:.1f} Mbps', 'cyan')}")
-        print(f"  Upload: {self.colorize(f'{metrics.upload_speed:.1f} Mbps', 'cyan')}")
-        print(f"  Latency: {self.colorize(f'{metrics.latency:.1f} ms', 'cyan')}")
-        print(f"  Packet Loss: {metrics.packet_loss:.1f}%")
-        
-        # Signal quality
-        print(f"\n{self.colors['bold']}Signal Quality:{self.colors['reset']}")
-        print(f"  Strength: {metrics.signal_strength:.1f} dBm")
-        print(f"  SNR: {metrics.snr:.1f} dB")
-        print(f"  Azimuth: {metrics.azimuth:.1f}°")
-        print(f"  Elevation: {metrics.elevation:.1f}°")
-        
-        # Device info
-        print(f"\n{self.colors['bold']}Device Info:{self.colors['reset']}")
-        print(f"  Dish Power: {metrics.dish_power_usage:.1f} W")
-        print(f"  Dish Temp: {metrics.dish_temp:.1f}°C")
-        print(f"  Router Temp: {metrics.router_temp:.1f}°C")
-        print(f"  Boot Count: {metrics.boot_count}")
-        
-        # Check thresholds
-        self._check_and_print_thresholds(metrics)
-        
-        # Print timestamp
-        timestamp = datetime.fromtimestamp(metrics.timestamp).strftime('%Y-%m-%d %H:%M:%S')
-        print(f"\nLast Updated: {timestamp}")
+        try:
+            metrics = self.monitor.get_metrics()
+            
+            if not metrics:
+                print(self.colorize("❌ Failed to get Starlink metrics", 'red'))
+                self.logger.error("Failed to retrieve metrics")
+                return
+            
+            self.print_header("STARLINK STATUS")
+            
+            # Basic status
+            status_color = 'green' if metrics.status == 'online' else 'red'
+            print(f"Status: {self.colorize(metrics.status.upper(), status_color)}")
+            print(f"Connected Satellites: {metrics.satellites_connected}")
+            print(f"Obstruction: {metrics.obstruction_percent:.1f}%")
+            
+            # Network metrics
+            print(f"\n{self.colors['bold']}Network Performance:{self.colors['reset']}")
+            print(f"  Download: {self.colorize(f'{metrics.download_speed:.1f} Mbps', 'cyan')}")
+            print(f"  Upload: {self.colorize(f'{metrics.upload_speed:.1f} Mbps', 'cyan')}")
+            print(f"  Latency: {self.colorize(f'{metrics.latency:.1f} ms', 'cyan')}")
+            print(f"  Packet Loss: {metrics.packet_loss:.1f}%")
+            
+            # Signal quality
+            print(f"\n{self.colors['bold']}Signal Quality:{self.colors['reset']}")
+            print(f"  Strength: {metrics.signal_strength:.1f} dBm")
+            print(f"  SNR: {metrics.snr:.1f} dB")
+            print(f"  Azimuth: {metrics.azimuth:.1f}°")
+            print(f"  Elevation: {metrics.elevation:.1f}°")
+            
+            # Device info
+            print(f"\n{self.colors['bold']}Device Info:{self.colors['reset']}")
+            print(f"  Dish Power: {metrics.dish_power_usage:.1f} W")
+            print(f"  Dish Temp: {metrics.dish_temp:.1f}°C")
+            print(f"  Router Temp: {metrics.router_temp:.1f}°C")
+            print(f"  Boot Count: {metrics.boot_count}")
+            
+            # Check thresholds
+            self._check_and_print_thresholds(metrics)
+            
+            # Print timestamp
+            timestamp = datetime.fromtimestamp(metrics.timestamp).strftime('%Y-%m-%d %H:%M:%S')
+            print(f"\nLast Updated: {timestamp}")
+            
+        except Exception as e:
+            self.logger.error(f"Error displaying status: {e}", exc_info=True)
+            print(self.colorize(f"❌ Error: {e}", 'red'))
     
     def _check_and_print_thresholds(self, metrics):
         """Check metrics against thresholds and print warnings"""
@@ -216,12 +238,17 @@ class StarlinkCLI:
     
     def export_data(self, filename: str, hours: int = 24):
         """Export monitoring data to JSON file"""
-        report = self.monitor.get_performance_report(hours=hours)
-        
-        with open(filename, 'w') as f:
-            json.dump(report, f, indent=2, default=str)
-        
-        print(f"Data exported to {filename}")
+        try:
+            report = self.monitor.get_performance_report(hours=hours)
+            
+            with open(filename, 'w') as f:
+                json.dump(report, f, indent=2, default=str)
+            
+            print(f"Data exported to {filename}")
+            self.logger.info(f"Data exported to {filename}")
+        except Exception as e:
+            self.logger.error(f"Failed to export data: {e}", exc_info=True)
+            print(self.colorize(f"❌ Failed to export data: {e}", 'red'))
     
     def set_thresholds_interactive(self):
         """Interactively set monitoring thresholds"""
@@ -243,6 +270,39 @@ class StarlinkCLI:
         if new_thresholds:
             self.monitor.set_thresholds(**new_thresholds)
             print("Thresholds updated successfully.")
+
+
+def setup_logging(log_level: str = None, log_file: str = None):
+    """
+    Setup logging configuration
+    
+    Args:
+        log_level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+        log_file: Optional log file path
+    """
+    config = Config()
+    level = log_level or config.get('logging.level', 'INFO')
+    log_format = config.get('logging.format', '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    file_path = log_file or config.get('logging.file')
+    
+    # Convert string level to logging constant
+    numeric_level = getattr(logging, level.upper(), logging.INFO)
+    
+    # Configure root logger
+    handlers = [logging.StreamHandler(sys.stderr)]
+    
+    if file_path:
+        try:
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            handlers.append(logging.FileHandler(file_path))
+        except Exception as e:
+            print(f"Warning: Failed to setup file logging: {e}", file=sys.stderr)
+    
+    logging.basicConfig(
+        level=numeric_level,
+        format=log_format,
+        handlers=handlers
+    )
 
 
 def main():
@@ -269,14 +329,12 @@ Examples:
     
     parser.add_argument(
         '--host',
-        default='192.168.100.1',
-        help='Starlink router IP address'
+        help='Starlink router IP address (overrides config)'
     )
     
     parser.add_argument(
         '--interval',
         type=int,
-        default=60,
         help='Monitoring interval in seconds (for monitor command)'
     )
     
@@ -299,13 +357,35 @@ Examples:
         help='Output file for export command'
     )
     
+    parser.add_argument(
+        '--log-level',
+        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+        help='Logging level (overrides config)'
+    )
+    
+    parser.add_argument(
+        '--log-file',
+        help='Log file path (overrides config)'
+    )
+    
     args = parser.parse_args()
     
+    # Setup logging
+    setup_logging(log_level=args.log_level, log_file=args.log_file)
+    logger = logging.getLogger(__name__)
+    
     # Initialize CLI
-    cli = StarlinkCLI(host=args.host)
+    try:
+        cli = StarlinkCLI(host=args.host)
+    except Exception as e:
+        logger.critical(f"Failed to initialize CLI: {e}", exc_info=True)
+        print(f"\n❌ Fatal Error: {e}", file=sys.stderr)
+        sys.exit(1)
     
     # Execute command
     try:
+        logger.info(f"Executing command: {args.command}")
+        
         if args.command == 'status':
             cli.print_status(detailed=True)
         
@@ -328,12 +408,15 @@ Examples:
             cli.print_connection_manager_status()
         
         print()  # Final newline
+        logger.info(f"Command '{args.command}' completed successfully")
         
     except KeyboardInterrupt:
+        logger.info("Operation cancelled by user")
         print("\n\nOperation cancelled by user.")
-        sys.exit(1)
+        sys.exit(130)  # Standard exit code for SIGINT
     except Exception as e:
-        print(f"\n{cli.colorize('Error:', 'red')} {e}")
+        logger.error(f"Command failed: {e}", exc_info=True)
+        print(f"\n❌ Error: {e}", file=sys.stderr)
         sys.exit(1)
 
 

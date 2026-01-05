@@ -5,9 +5,12 @@ Provides monitoring capabilities for Starlink satellite connections
 
 import time
 import threading
+import logging
 from typing import Dict, List, Optional
 from dataclasses import dataclass, asdict
 from collections import deque
+
+from src.config import Config
 
 
 @dataclass
@@ -34,28 +37,27 @@ class StarlinkMetrics:
 class StarlinkMonitor:
     """Monitor Starlink satellite connection metrics"""
     
-    def __init__(self, host: str = "192.168.100.1", history_size: int = 1000):
+    def __init__(self, host: str = None, history_size: int = None, config: Config = None):
         """
         Initialize Starlink monitor
         
         Args:
-            host: Starlink router IP address
-            history_size: Number of historical metrics to retain
+            host: Starlink router IP address (overrides config)
+            history_size: Number of historical metrics to retain (overrides config)
+            config: Configuration object (creates default if None)
         """
-        self.host = host
-        self.history_size = history_size
-        self.metrics_history: deque = deque(maxlen=history_size)
+        self.config = config or Config()
+        self.logger = logging.getLogger(__name__)
+        
+        self.host = host or self.config.get('monitor.default_host', '192.168.100.1')
+        self.history_size = history_size or self.config.get('monitor.history_size', 1000)
+        self.metrics_history: deque = deque(maxlen=self.history_size)
         self.initialized = False
         self.monitoring = False
         self.monitor_thread: Optional[threading.Thread] = None
         
-        # Default thresholds for alerts
-        self.thresholds = {
-            'min_download_speed': 25.0,  # Mbps
-            'max_latency': 100.0,  # ms
-            'max_packet_loss': 5.0,  # %
-            'max_obstruction': 10.0,  # %
-        }
+        # Load thresholds from config
+        self.thresholds = self.config.get_thresholds()
         
         # Try to initialize connection
         self._initialize()
@@ -65,10 +67,12 @@ class StarlinkMonitor:
         try:
             # TODO: Replace with actual Starlink router connection logic
             # For now, we'll mark as initialized to allow the CLI to work
+            self.logger.info(f"Initializing connection to Starlink router at {self.host}")
             self.initialized = True
+            self.logger.info("Starlink monitor initialized successfully")
             return True
         except Exception as e:
-            print(f"Failed to initialize Starlink connection: {e}")
+            self.logger.error(f"Failed to initialize Starlink connection: {e}")
             self.initialized = False
             return False
     
@@ -80,11 +84,13 @@ class StarlinkMonitor:
             StarlinkMetrics object or None if failed
         """
         if not self.initialized:
+            self.logger.warning("Cannot get metrics: monitor not initialized")
             return None
         
         try:
             # TODO: Replace with actual Starlink router API calls
             # For demo purposes, return mock data
+            self.logger.debug("Fetching current metrics from Starlink router")
             metrics = StarlinkMetrics(
                 timestamp=time.time(),
                 status="online",
@@ -106,10 +112,11 @@ class StarlinkMonitor:
             
             # Add to history
             self.metrics_history.append(metrics)
+            self.logger.debug(f"Metrics retrieved: {metrics.download_speed} Mbps down, {metrics.latency} ms latency")
             
             return metrics
         except Exception as e:
-            print(f"Failed to get metrics: {e}")
+            self.logger.error(f"Failed to get metrics: {e}", exc_info=True)
             return None
     
     def set_thresholds(self, **kwargs):
@@ -122,6 +129,9 @@ class StarlinkMonitor:
         for key, value in kwargs.items():
             if key in self.thresholds:
                 self.thresholds[key] = value
+                self.logger.info(f"Threshold updated: {key} = {value}")
+        # Save to config
+        self.config.set_thresholds(**kwargs)
     
     def get_performance_report(self, hours: int = 24) -> Dict:
         """
@@ -193,21 +203,27 @@ class StarlinkMonitor:
             'current_latency': current.latency if current else 0.0
         }
     
-    def start_monitoring(self, interval: int = 60):
+    def start_monitoring(self, interval: int = None):
         """
         Start continuous monitoring in background thread
         
         Args:
-            interval: Monitoring interval in seconds
+            interval: Monitoring interval in seconds (uses config default if None)
         """
         if self.monitoring:
+            self.logger.warning("Monitoring already started")
             return
         
+        interval = interval or self.config.get('monitor.default_interval', 60)
+        self.logger.info(f"Starting continuous monitoring with {interval}s interval")
         self.monitoring = True
         
         def monitor_loop():
             while self.monitoring:
-                self.get_metrics()
+                try:
+                    self.get_metrics()
+                except Exception as e:
+                    self.logger.error(f"Error in monitoring loop: {e}", exc_info=True)
                 time.sleep(interval)
         
         self.monitor_thread = threading.Thread(target=monitor_loop, daemon=True)
@@ -215,6 +231,11 @@ class StarlinkMonitor:
     
     def stop_monitoring(self):
         """Stop continuous monitoring"""
+        if not self.monitoring:
+            self.logger.warning("Monitoring not running")
+            return
+        
+        self.logger.info("Stopping monitoring")
         self.monitoring = False
         if self.monitor_thread:
             self.monitor_thread.join(timeout=5)
@@ -227,12 +248,14 @@ class StarlinkMonitor:
             True if command sent successfully, False otherwise
         """
         if not self.initialized:
+            self.logger.error("Cannot reboot: monitor not initialized")
             return False
         
         try:
             # TODO: Replace with actual reboot command implementation
-            print("Reboot command would be sent to Starlink dish")
+            self.logger.warning("Sending reboot command to Starlink dish")
+            self.logger.info("Reboot command would be sent to Starlink dish")
             return True
         except Exception as e:
-            print(f"Failed to reboot dish: {e}")
+            self.logger.error(f"Failed to reboot dish: {e}", exc_info=True)
             return False

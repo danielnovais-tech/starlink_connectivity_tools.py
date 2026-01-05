@@ -4,6 +4,7 @@ Manages connections to satellite networks including Starlink
 """
 
 import time
+import logging
 from typing import Dict, List, Optional
 from dataclasses import dataclass
 
@@ -29,6 +30,7 @@ class SatelliteConnectionManager:
             enable_starlink: Whether to enable Starlink connectivity
             starlink_host: Starlink router IP address
         """
+        self.logger = logging.getLogger(__name__)
         self.enable_starlink = enable_starlink
         self.starlink_host = starlink_host
         self.active_connection: Optional[str] = None
@@ -41,8 +43,9 @@ class SatelliteConnectionManager:
             try:
                 from src.starlink_monitor import StarlinkMonitor
                 self.starlink_monitor = StarlinkMonitor(host=starlink_host)
+                self.logger.info("Starlink monitor initialized for connection manager")
             except ImportError as e:
-                print(f"Warning: Could not import StarlinkMonitor: {e}")
+                self.logger.error(f"Could not import StarlinkMonitor: {e}")
                 self.starlink_monitor = None
         else:
             self.starlink_monitor = None
@@ -54,10 +57,12 @@ class SatelliteConnectionManager:
         Returns:
             List of available connection names
         """
+        self.logger.debug("Scanning for available connections")
         self.available_connections = []
         
         if self.enable_starlink and self.starlink_monitor and self.starlink_monitor.initialized:
             self.available_connections.append("starlink_satellite")
+            self.logger.info("Found Starlink satellite connection")
         
         return self.available_connections
     
@@ -72,7 +77,10 @@ class SatelliteConnectionManager:
             True if connected successfully
         """
         if connection_name not in self.available_connections:
+            self.logger.warning(f"Connection '{connection_name}' not available")
             return False
+        
+        self.logger.info(f"Connecting to {connection_name}")
         
         if connection_name == "starlink_satellite" and self.starlink_monitor:
             # Get current metrics from Starlink
@@ -87,12 +95,17 @@ class SatelliteConnectionManager:
                     signal_strength=metrics.signal_strength,
                     packet_loss=metrics.packet_loss
                 )
+                self.logger.info(f"Connected to {connection_name} successfully")
                 return True
+            else:
+                self.logger.error(f"Failed to get metrics for {connection_name}")
         
         return False
     
     def disconnect(self):
         """Disconnect from current connection"""
+        if self.active_connection:
+            self.logger.info(f"Disconnecting from {self.active_connection}")
         self.active_connection = None
         self.connection_metrics = None
     
