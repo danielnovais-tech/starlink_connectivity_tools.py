@@ -32,7 +32,14 @@ class StarlinkClient:
     def connect(self) -> None:
         """Establish connection to the Starlink dish."""
         if self._channel is None:
-            self._channel = grpc.insecure_channel(self.target)
+            # Use secure channel for remote connections, insecure for local
+            if self.auth_token or not self.target.startswith("192.168."):
+                # Remote connection - use secure channel
+                credentials = grpc.ssl_channel_credentials()
+                self._channel = grpc.secure_channel(self.target, credentials)
+            else:
+                # Local connection - use insecure channel
+                self._channel = grpc.insecure_channel(self.target)
             # Note: In a real implementation, this would use the generated gRPC stub
             # from the Starlink proto files
     
@@ -139,7 +146,8 @@ class StarlinkClient:
         Retrieve device telemetry including alerts, errors, and warnings.
         
         Args:
-            streaming: If True, returns a streaming iterator (default: False)
+            streaming: If True, would return a streaming iterator. Currently not implemented
+                      in this placeholder version (default: False)
             
         Returns:
             Dict containing:
@@ -151,8 +159,15 @@ class StarlinkClient:
                 
         Raises:
             grpc.RpcError: If the connection fails
+            NotImplementedError: If streaming=True (not yet implemented)
         """
         # Placeholder implementation
+        if streaming:
+            raise NotImplementedError(
+                "Streaming telemetry is not yet implemented in this version. "
+                "Set streaming=False to get snapshot telemetry data."
+            )
+        
         return {
             "alerts": [],
             "errors": [],
@@ -296,7 +311,7 @@ class StarlinkClient:
         if ssid is not None:
             config["ssid"] = ssid
         if password is not None:
-            config["password"] = "***hidden***"  # Don't return password in response
+            config["password_updated"] = True  # Indicate password was updated without exposing it
         if bypass_mode is not None:
             config["bypass_mode"] = bypass_mode
         config.update(kwargs)
