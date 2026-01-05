@@ -17,6 +17,373 @@ try:
 except ImportError:
     STARLINK_AVAILABLE = False
     logging.warning("Starlink monitor not available")
+Connection Manager - Updated with Starlink integration
+
+Manages network connections with specific support for Starlink satellite internet.
+Handles connection establishment, monitoring, and recovery.
+"""
+
+import logging
+import time
+from typing import Optional, Dict, Any
+import requests
+Connection Manager Module
+
+Manages Starlink satellite connections, including establishing, 
+monitoring, and maintaining stable connections.
+"""
+
+
+class ConnectionManager:
+    """Manages Starlink satellite connections."""
+    
+    def __init__(self):
+        """Initialize the connection manager."""
+        self.connected = False
+        self.connection_quality = 0
+    
+    def connect(self):
+        """Establish a connection to the Starlink satellite."""
+        # TODO: Implement connection logic
+        pass
+    
+    def disconnect(self):
+        """Disconnect from the Starlink satellite."""
+        # TODO: Implement disconnection logic
+        pass
+    
+    def check_status(self):
+        """Check the current connection status."""
+        # TODO: Implement status check logic
+        return self.connected
+    
+    def get_connection_quality(self):
+        """Get the current connection quality metric."""
+        # TODO: Implement connection quality measurement
+        return self.connection_quality
+Satellite Connection Manager for Starlink connectivity tools.
+"""
+import json
+from typing import Dict, List, Optional, Any
+Satellite Connection Manager
+Handles satellite connectivity, scanning, and connection management
+"""
+
+import logging
+import json
+from typing import Dict, List, Optional
+from dataclasses import dataclass
+from datetime import datetime
+
+logger = logging.getLogger(__name__)
+
+
+class ConnectionManager:
+    """Manages network connections with Starlink integration."""
+    
+    def __init__(self, starlink_endpoint: str = "192.168.100.1"):
+        """
+        Initialize the ConnectionManager.
+        
+        Args:
+            starlink_endpoint: IP address or hostname of the Starlink router
+        """
+        self.starlink_endpoint = starlink_endpoint
+        self.is_connected = False
+        self.connection_type = None
+        self.retry_count = 0
+        self.max_retries = 3
+        
+    def connect(self) -> bool:
+        """
+        Establish a connection to the Starlink network.
+        
+        Returns:
+            bool: True if connection is successful, False otherwise
+        """
+        logger.info("Attempting to connect to Starlink network...")
+        
+        try:
+            # Try to connect to Starlink router
+            response = self._check_starlink_status()
+            
+            if response and response.get("connected", False):
+                self.is_connected = True
+                self.connection_type = "starlink"
+                self.retry_count = 0
+                logger.info("Successfully connected to Starlink network")
+                return True
+            else:
+                logger.warning("Starlink not available, attempting fallback...")
+                return self._fallback_connection()
+                
+        except Exception as e:
+            logger.error(f"Connection failed: {e}")
+            self.retry_count += 1
+            
+            if self.retry_count < self.max_retries:
+                logger.info(f"Retrying connection ({self.retry_count}/{self.max_retries})...")
+                time.sleep(2)
+                return self.connect()
+            
+            return False
+    
+    def disconnect(self) -> None:
+        """Disconnect from the network."""
+        logger.info("Disconnecting from network...")
+        self.is_connected = False
+        self.connection_type = None
+        
+    def get_status(self) -> Dict[str, Any]:
+        """
+        Get current connection status.
+        
+        Returns:
+            dict: Connection status information
+        """
+        return {
+            "connected": self.is_connected,
+            "connection_type": self.connection_type,
+            "retry_count": self.retry_count,
+            "starlink_endpoint": self.starlink_endpoint
+        }
+    
+    def _check_starlink_status(self) -> Optional[Dict[str, Any]]:
+        """
+        Check Starlink router status.
+        
+        Returns:
+            Optional[dict]: Status information from Starlink router, or None if unavailable
+        """
+        try:
+            # Simulate Starlink status check
+            # In a real implementation, this would query the Starlink gRPC API
+            return {
+                "connected": True,
+                "uptime": 3600,
+                "obstructed": False,
+                "signal_quality": 95
+            }
+        except Exception as e:
+            logger.error(f"Failed to check Starlink status: {e}")
+            return None
+    
+    def _fallback_connection(self) -> bool:
+        """
+        Attempt to connect using fallback method.
+        
+        Returns:
+            bool: True if fallback connection is successful
+        """
+        logger.info("Attempting fallback connection...")
+        # Implement fallback logic here (e.g., cellular, other ISP)
+        self.is_connected = False
+        self.connection_type = "fallback"
+        return False
+    
+    def check_starlink_health(self) -> Dict[str, Any]:
+        """
+        Perform comprehensive Starlink health check.
+        
+        Returns:
+            dict: Health check results
+        """
+        status = self._check_starlink_status()
+        
+        if not status:
+            return {
+                "healthy": False,
+                "error": "Unable to reach Starlink router"
+            }
+        
+        return {
+            "healthy": status.get("connected", False),
+            "signal_quality": status.get("signal_quality", 0),
+            "obstructed": status.get("obstructed", True),
+            "uptime": status.get("uptime", 0)
+        }
+@dataclass
+class ConnectionMetrics:
+    """Metrics for a satellite connection"""
+    bandwidth_down: float = 0.0  # Mbps
+    bandwidth_up: float = 0.0    # Mbps
+    latency: float = 0.0          # ms
+    packet_loss: float = 0.0      # percentage
+    signal_strength: float = 0.0  # dBm
+    last_updated: datetime = None
+    
+    def __post_init__(self):
+        if self.last_updated is None:
+            self.last_updated = datetime.now()
+
+
+class SatelliteConnectionManager:
+    """
+    Manages satellite connections with support for crisis mode and connection optimization.
+    """
+    
+    def __init__(self):
+        """Initialize the connection manager."""
+        self.crisis_mode_enabled = False
+        self.crisis_config = {}
+        self.current_connection = None
+        self.available_connections = []
+    
+    def enable_crisis_mode(self, config: Dict[str, Any]) -> None:
+        """
+        Enable crisis mode for emergency scenarios.
+        
+        Args:
+            config: Configuration dictionary containing:
+                - crisis_min_bandwidth: Minimum bandwidth in Mbps
+                - crisis_max_latency: Maximum latency in ms
+        """
+        self.crisis_mode_enabled = True
+        self.crisis_config = config
+    
+    def scan_available_connections(self) -> List[Dict[str, Any]]:
+        """
+        Scan for available satellite connections.
+        
+        Returns:
+            List of available connections with their properties
+        """
+        # Simulate scanning for available connections
+        self.available_connections = [
+            {
+                'id': 'sat-001',
+                'name': 'Starlink Satellite 001',
+                'bandwidth': 150.0,  # Mbps
+                'latency': 20,  # ms
+                'signal_strength': 95,  # percentage
+                'available': True
+            },
+            {
+                'id': 'sat-002',
+                'name': 'Starlink Satellite 002',
+                'bandwidth': 120.0,  # Mbps
+                'latency': 25,  # ms
+                'signal_strength': 88,  # percentage
+                'available': True
+            }
+        ]
+        
+        # Filter connections based on crisis mode requirements
+        if self.crisis_mode_enabled:
+            filtered_connections = []
+            min_bandwidth = self.crisis_config.get('crisis_min_bandwidth', 0)
+            max_latency = self.crisis_config.get('crisis_max_latency', float('inf'))
+            
+            for conn in self.available_connections:
+                if (conn['bandwidth'] >= min_bandwidth and 
+                    conn['latency'] <= max_latency):
+                    filtered_connections.append(conn)
+            
+            return filtered_connections
+        
+        return self.available_connections
+    
+    def connect(self, connection: Dict[str, Any]) -> bool:
+        """
+        Connect to a specific satellite connection.
+        
+        Args:
+            connection: Connection dictionary from scan_available_connections()
+            
+        Returns:
+            True if connection was successful, False otherwise
+        """
+        if connection.get('available', False):
+            self.current_connection = connection
+            return True
+        return False
+    
+    def get_connection_report(self) -> Dict[str, Any]:
+        """
+        Get a detailed status report of the current connection.
+        
+        Returns:
+            Dictionary containing connection status and metrics
+        """
+        if not self.current_connection:
+            return {
+                'status': 'disconnected',
+                'message': 'No active connection',
+                'crisis_mode': self.crisis_mode_enabled,
+                'crisis_config': self.crisis_config if self.crisis_mode_enabled else None
+            }
+        
+        return {
+            'status': 'connected',
+            'connection': {
+                'id': self.current_connection['id'],
+                'name': self.current_connection['name'],
+                'bandwidth_mbps': self.current_connection['bandwidth'],
+                'latency_ms': self.current_connection['latency'],
+                'signal_strength': self.current_connection['signal_strength']
+            },
+            'crisis_mode': self.crisis_mode_enabled,
+            'crisis_config': self.crisis_config if self.crisis_mode_enabled else None,
+            'performance_metrics': {
+                'bandwidth_utilization': '75%',
+                'packet_loss': '0.1%',
+                'uptime': '99.9%'
+            }
+        }
+    Manages satellite connections for Starlink
+    """
+    
+    def __init__(self, config_file: str = None):
+        """
+        Initialize the connection manager
+        
+        Args:
+            config_file: Optional path to configuration file
+        """
+        self.config_file = config_file
+        self.active_connection: Optional[str] = None
+        self.available_connections: List[str] = []
+        self.metrics: Dict[str, ConnectionMetrics] = {}
+        self.crisis_mode = False
+        self.crisis_config = {}
+        
+        logger.info("SatelliteConnectionManager initialized")
+        
+        if config_file:
+            self._load_config(config_file)
+    
+    def _load_config(self, config_file: str):
+        """Load configuration from file"""
+        try:
+            with open(config_file, 'r') as f:
+                config = json.load(f)
+                # Process configuration
+                logger.info(f"Configuration loaded from {config_file}")
+        except FileNotFoundError:
+            logger.warning(f"Config file {config_file} not found, using defaults")
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON in config file: {e}")
+    
+    def enable_crisis_mode(self, crisis_config: dict):
+        """
+        Enable crisis mode with special configuration
+        
+        Args:
+            crisis_config: Dictionary with crisis mode settings
+        """
+        self.crisis_mode = True
+        self.crisis_config = crisis_config
+        logger.warning(f"Crisis mode enabled: {crisis_config}")
+Main connection manager for satellite connectivity optimization
+"""
+import time
+import threading
+import logging
+from dataclasses import dataclass, asdict
+from typing import Dict, List, Optional
+from enum import Enum
+import json
+import random
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -35,6 +402,7 @@ class ConnectionStatus(Enum):
 @dataclass
 class ConnectionMetrics:
     """Unified metrics for connection quality"""
+    """Metrics for connection quality"""
     latency: float  # in ms
     jitter: float  # in ms
     packet_loss: float  # percentage
@@ -74,6 +442,23 @@ class SatelliteConnectionManager:
                  config_path: str = None,
                  enable_starlink: bool = True,
                  starlink_host: str = "192.168.100.1"):
+
+
+class SatelliteConnectionManager:
+    """Manages satellite connections with optimization for crisis scenarios"""
+    
+    # Constants for connection quality scoring
+    MAX_LATENCY_FOR_SCORING = 1000  # ms
+    MAX_BANDWIDTH_FOR_SCORING = 200  # Mbps
+    MAX_PACKET_LOSS_FOR_SCORING = 100  # percentage
+    MIN_SIGNAL_STRENGTH = -100  # dBm
+    SIGNAL_RANGE = 60  # dBm
+    
+    # Connection parameters
+    SATELLITE_VISIBILITY_THRESHOLD = 0.3  # Probability threshold for visibility
+    CONNECTION_TIMEOUT = 2  # seconds
+    
+    def __init__(self, config_path: str = None):
         self.connections: Dict[str, ConnectionStatus] = {}
         self.metrics: Dict[str, ConnectionMetrics] = {}
         self.active_connection: Optional[str] = None
@@ -157,6 +542,130 @@ class SatelliteConnectionManager:
                     connections.append(sat_id)
                     self.connections[sat_id] = ConnectionStatus.SCANNING
         
+        Returns:
+            List of available connection IDs
+        """
+        logger.info("Scanning for available satellite connections...")
+        
+        # Simulate scanning for connections
+        # In real implementation, would interface with Starlink hardware
+        self.available_connections = [
+            "starlink-sat-001",
+            "starlink-sat-002",
+            "starlink-sat-003"
+        ]
+        
+        # Initialize metrics for each connection
+        for conn_id in self.available_connections:
+            if conn_id not in self.metrics:
+                self.metrics[conn_id] = ConnectionMetrics(
+                    bandwidth_down=100.0,
+                    bandwidth_up=20.0,
+                    latency=40.0,
+                    packet_loss=0.1,
+                    signal_strength=-65.0
+                )
+        
+        logger.info(f"Found {len(self.available_connections)} connections")
+        return self.available_connections
+    
+    def connect(self, connection_id: str) -> bool:
+        """
+        Connect to a specific satellite
+        
+        Args:
+            connection_id: ID of the connection to connect to
+            
+        Returns:
+            True if connection successful, False otherwise
+        """
+        if connection_id not in self.available_connections:
+            logger.error(f"Connection {connection_id} not available")
+            return False
+        
+        try:
+            # Simulate connection establishment
+            logger.info(f"Connecting to {connection_id}...")
+            
+            self.active_connection = connection_id
+            
+            # Update metrics for active connection
+            if connection_id in self.metrics:
+                self.metrics[connection_id].last_updated = datetime.now()
+            
+            logger.info(f"Successfully connected to {connection_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to connect to {connection_id}: {e}")
+            return False
+    
+    def disconnect(self, connection_id: str = None):
+        """
+        Disconnect from satellite
+        
+        Args:
+            connection_id: Optional specific connection to disconnect
+        """
+        if connection_id is None:
+            connection_id = self.active_connection
+        
+        if connection_id:
+            logger.info(f"Disconnecting from {connection_id}")
+            if self.active_connection == connection_id:
+                self.active_connection = None
+    
+    def get_connection_report(self) -> dict:
+        """
+        Get current connection status report
+        
+        Returns:
+            Dictionary with connection information
+        """
+        report = {
+            'active_connection': self.active_connection,
+            'available_connections': len(self.available_connections),
+            'crisis_mode': self.crisis_mode
+        }
+        
+        if self.active_connection and self.active_connection in self.metrics:
+            metrics = self.metrics[self.active_connection]
+            report['current_metrics'] = {
+                'bandwidth_down': metrics.bandwidth_down,
+                'bandwidth_up': metrics.bandwidth_up,
+                'latency': metrics.latency,
+                'packet_loss': metrics.packet_loss,
+                'signal_strength': metrics.signal_strength
+            }
+        
+        return report
+    
+    def shutdown(self):
+        """Gracefully shutdown the connection manager"""
+        logger.info("Shutting down connection manager...")
+        
+        if self.active_connection:
+            self.disconnect()
+        
+        self.available_connections.clear()
+        logger.info("Connection manager shutdown complete")
+        Returns list of connection IDs
+        """
+        connections = []
+        
+        # Simulate scanning for connections
+        # In real implementation, this would interface with Starlink API
+        satellite_ids = [
+            "starlink_sat_001",
+            "starlink_sat_002", 
+            "starlink_sat_003"
+        ]
+        
+        for sat_id in satellite_ids:
+            if self._check_satellite_visibility(sat_id):
+                connections.append(sat_id)
+                self.connections[sat_id] = ConnectionStatus.SCANNING
+        
         logger.info(f"Found {len(connections)} available connections")
         return connections
     
@@ -165,6 +674,10 @@ class SatelliteConnectionManager:
         Check if satellite is visible (simulated)
         """
         return random.random() > 0.3
+        In real implementation, would use GPS and satellite ephemeris data
+        """
+        # Simulate satellite visibility check
+        return random.random() > self.SATELLITE_VISIBILITY_THRESHOLD  # 70% chance of visibility
     
     def connect(self, connection_id: str) -> bool:
         """Establish connection to a specific satellite"""
@@ -180,11 +693,21 @@ class SatelliteConnectionManager:
             metrics = self._measure_connection_quality(connection_id)
             
             if self._validate_connection(metrics):
+            # Simulate connection process
+            time.sleep(self.CONNECTION_TIMEOUT)
+            
+            # Check connection quality
+            metrics = self._measure_connection_quality(connection_id)
+            
+            if (metrics.bandwidth_down >= self.minimum_viable_bandwidth and 
+                metrics.latency <= self.max_acceptable_latency):
+                
                 self.active_connection = connection_id
                 self.connections[connection_id] = ConnectionStatus.CONNECTED
                 self.metrics[connection_id] = metrics
                 
                 logger.info(f"Successfully connected to {connection_id}")
+                logger.info(f"Metrics: {metrics}")
                 
                 # Start monitoring if not already
                 if not self.monitoring:
@@ -193,6 +716,7 @@ class SatelliteConnectionManager:
                 return True
             else:
                 logger.warning(f"Connection {connection_id} does not meet requirements")
+                logger.warning(f"Connection {connection_id} does not meet minimum requirements")
                 self.connections[connection_id] = ConnectionStatus.DEGRADED
                 return False
                 
@@ -278,6 +802,12 @@ class SatelliteConnectionManager:
                 return ConnectionMetrics.from_starlink_metrics(starlink_metrics)
         
         # Simulated metrics for other connections
+    def _measure_connection_quality(self, connection_id: str) -> ConnectionMetrics:
+        """
+        Measure connection quality metrics
+        In real implementation, would perform actual network tests
+        """
+        # Simulated metrics
         return ConnectionMetrics(
             latency=random.uniform(20, 100),
             jitter=random.uniform(1, 10),
@@ -290,6 +820,7 @@ class SatelliteConnectionManager:
     
     def enable_crisis_mode(self, settings: Dict = None):
         """Enable crisis mode with optimized settings"""
+        """Enable crisis mode with optimized settings for emergencies"""
         self.crisis_mode = True
         
         # Adjust parameters for crisis mode
@@ -317,6 +848,16 @@ class SatelliteConnectionManager:
     
     def start_monitoring(self, interval: int = 30):
         """Start continuous monitoring of connection quality"""
+        logger.info("Crisis mode enabled")
+        logger.info(f"Min bandwidth: {self.minimum_viable_bandwidth} Mbps")
+        logger.info(f"Max latency: {self.max_acceptable_latency} ms")
+    
+    def start_monitoring(self, interval: int = 30):
+        """Start continuous monitoring of connection quality"""
+        if self.monitoring:
+            logger.warning("Monitoring is already active")
+            return
+            
         self.monitoring = True
         
         def monitor():
@@ -327,6 +868,9 @@ class SatelliteConnectionManager:
                     
                     # Check if connection is degrading
                     if not self._validate_connection(metrics):
+                    if (metrics.bandwidth_down < self.minimum_viable_bandwidth or 
+                        metrics.latency > self.max_acceptable_latency):
+                        
                         logger.warning(f"Connection {self.active_connection} is degrading")
                         self.connections[self.active_connection] = ConnectionStatus.DEGRADED
                         
@@ -361,6 +905,7 @@ class SatelliteConnectionManager:
                     score = self._calculate_connection_score(metrics)
                     
                     if score > best_score and score > current_score * 1.2:  # 20% better
+                    if score > best_score:
                         best_score = score
                         best_connection = conn_id
                         
@@ -369,6 +914,8 @@ class SatelliteConnectionManager:
         
         if best_connection:
             logger.info(f"Switching to {best_connection} (score: {best_score:.2f})")
+        if best_connection and best_score > self._calculate_current_score():
+            logger.info(f"Switching to {best_connection} (score: {best_score})")
             self.disconnect()
             return self.connect(best_connection)
         
@@ -399,6 +946,12 @@ class SatelliteConnectionManager:
             bonus = 0.1 * (min(metrics.satellites_connected, 10) / 10)
         
         return latency_score + bandwidth_score + packet_loss_score + signal_score + bonus
+        latency_score = max(0, 1 - (metrics.latency / self.MAX_LATENCY_FOR_SCORING)) * weights['latency']
+        bandwidth_score = min(1, metrics.bandwidth_down / self.MAX_BANDWIDTH_FOR_SCORING) * weights['bandwidth']
+        packet_loss_score = max(0, 1 - (metrics.packet_loss / self.MAX_PACKET_LOSS_FOR_SCORING)) * weights['packet_loss']
+        signal_score = max(0, min(1, (metrics.signal_strength - self.MIN_SIGNAL_STRENGTH) / self.SIGNAL_RANGE)) * weights['signal']
+        
+        return latency_score + bandwidth_score + packet_loss_score + signal_score
     
     def _calculate_current_score(self) -> float:
         """Calculate score for current connection"""
@@ -479,3 +1032,69 @@ class SatelliteConnectionManager:
             self.starlink_monitor.stop_monitoring()
         
         logger.info("Connection manager shutdown complete")
+        logger.info("Connection manager shutdown complete")
+Connection Manager Module
+
+Handles Starlink connection establishment, monitoring, and management.
+"""
+
+
+class ConnectionManager:
+    """Manages Starlink satellite connection."""
+
+    def __init__(self, config=None):
+        """
+        Initialize the ConnectionManager.
+
+        Args:
+            config: Optional configuration dictionary
+        """
+        self.config = config or {}
+        self.connected = False
+        self.connection_status = "disconnected"
+
+    def connect(self):
+        """
+        Establish connection to Starlink satellite.
+
+        Returns:
+            bool: True if connection successful, False otherwise
+        """
+        # Placeholder implementation
+        self.connected = True
+        self.connection_status = "connected"
+        return True
+
+    def disconnect(self):
+        """
+        Disconnect from Starlink satellite.
+
+        Returns:
+            bool: True if disconnection successful, False otherwise
+        """
+        # Placeholder implementation
+        self.connected = False
+        self.connection_status = "disconnected"
+        return True
+
+    def get_status(self):
+        """
+        Get current connection status.
+
+        Returns:
+            dict: Connection status information
+        """
+        return {
+            "connected": self.connected,
+            "status": self.connection_status,
+        }
+
+    def reconnect(self):
+        """
+        Reconnect to Starlink satellite.
+
+        Returns:
+            bool: True if reconnection successful, False otherwise
+        """
+        self.disconnect()
+        return self.connect()
