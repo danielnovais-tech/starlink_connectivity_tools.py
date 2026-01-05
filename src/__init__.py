@@ -1,3 +1,4 @@
+"""Starlink connectivity tools package"""
 """
 Starlink Connectivity Tools
 Main package for satellite connectivity optimization
