@@ -2,6 +2,31 @@
 """
 Starlink Monitor CLI Tool
 Command-line interface for monitoring and managing Starlink connectivity
+
+This tool provides comprehensive monitoring and management capabilities for
+Starlink satellite internet connections including:
+- Real-time status monitoring
+- Performance reports and analytics
+- Connection management
+- Threshold-based alerting
+- Data export (JSON, CSV)
+- Interactive configuration
+
+Examples:
+    Check current status:
+        $ starlink-cli status
+    
+    Monitor with custom interval:
+        $ starlink-cli monitor --interval 30
+    
+    Generate 48-hour performance report:
+        $ starlink-cli report --hours 48
+    
+    Export data to CSV:
+        $ starlink-cli export --output data.csv --format csv
+    
+    Enable debug logging:
+        $ starlink-cli status --log-level DEBUG
 """
 
 import argparse
@@ -9,9 +34,10 @@ import sys
 import os
 import time
 import json
+import csv
 import logging
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Optional, Any
 
 # Exit codes
 EXIT_CODE_SUCCESS = 0
@@ -241,19 +267,62 @@ class StarlinkCLI:
         else:
             print("Reboot cancelled.")
     
-    def export_data(self, filename: str, hours: int = 24):
-        """Export monitoring data to JSON file"""
+    def export_data(self, filename: str, hours: int = 24, format: str = 'json') -> None:
+        """
+        Export monitoring data to file
+        
+        Args:
+            filename: Output file path
+            hours: Hours of historical data to export
+            format: Export format ('json' or 'csv')
+        """
         try:
             report = self.monitor.get_performance_report(hours=hours)
             
-            with open(filename, 'w') as f:
-                json.dump(report, f, indent=2, default=str)
+            if format.lower() == 'csv':
+                self._export_csv(filename, report)
+            else:
+                self._export_json(filename, report)
             
-            print(f"Data exported to {filename}")
-            self.logger.info(f"Data exported to {filename}")
+            print(f"Data exported to {filename} ({format.upper()} format)")
+            self.logger.info(f"Data exported to {filename} in {format.upper()} format")
         except Exception as e:
             self.logger.error(f"Failed to export data: {e}", exc_info=True)
             print(self.colorize(f"❌ Failed to export data: {e}", 'red'))
+    
+    def _export_json(self, filename: str, report: Dict[str, Any]) -> None:
+        """Export data in JSON format"""
+        with open(filename, 'w') as f:
+            json.dump(report, f, indent=2, default=str)
+    
+    def _export_csv(self, filename: str, report: Dict[str, Any]) -> None:
+        """Export data in CSV format"""
+        with open(filename, 'w', newline='') as f:
+            writer = csv.writer(f)
+            
+            # Write header
+            writer.writerow(['Metric', 'Value'])
+            
+            # Write basic info
+            writer.writerow(['Status', report.get('status', 'unknown')])
+            writer.writerow(['Samples', report.get('samples', 0)])
+            writer.writerow(['Availability %', f"{report.get('availability_percent', 0):.2f}"])
+            writer.writerow(['Issues Count', report.get('issues_count', 0)])
+            writer.writerow(['Active Alerts', report.get('active_alerts', 0)])
+            
+            # Write averages
+            writer.writerow([])
+            writer.writerow(['Average Metrics', ''])
+            if 'averages' in report:
+                for key, value in report['averages'].items():
+                    writer.writerow([f'Avg {key}', f'{value:.2f}'])
+            
+            # Write current metrics
+            writer.writerow([])
+            writer.writerow(['Current Metrics', ''])
+            writer.writerow(['Current Status', report.get('current_status', 'unknown')])
+            writer.writerow(['Current Download (Mbps)', f"{report.get('current_download', 0):.2f}"])
+            writer.writerow(['Current Latency (ms)', f"{report.get('current_latency', 0):.2f}"])
     
     def set_thresholds_interactive(self):
         """Interactively set monitoring thresholds"""
@@ -313,18 +382,30 @@ def setup_logging(log_level: str = None, log_file: str = None):
     )
 
 
-def main():
+def main() -> None:
     """Main CLI entry point"""
     parser = argparse.ArgumentParser(
-        description="Starlink Connectivity Monitor CLI",
+        prog='starlink-cli',
+        description="Starlink Connectivity Monitor CLI - Monitor and manage your Starlink connection",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  %(prog)s status                    # Show current status
-  %(prog)s monitor --interval 30     # Monitor every 30 seconds
-  %(prog)s report --hours 48         # 48-hour performance report
-  %(prog)s reboot                    # Reboot Starlink dish
-  %(prog)s thresholds                # Set monitoring thresholds
+  %(prog)s status                           # Show current status
+  %(prog)s status --log-level DEBUG         # Show status with debug logging
+  %(prog)s monitor --interval 30            # Monitor every 30 seconds
+  %(prog)s monitor --duration 3600          # Monitor for 1 hour
+  %(prog)s report --hours 48                # 48-hour performance report
+  %(prog)s export --output data.json        # Export to JSON (default)
+  %(prog)s export --output data.csv --format csv  # Export to CSV
+  %(prog)s reboot                           # Reboot Starlink dish (requires confirmation)
+  %(prog)s thresholds                       # Interactively set monitoring thresholds
+  %(prog)s connection                       # Check connection manager status
+
+Configuration:
+  Configuration file: ~/.config/starlink_monitor/config.json
+  Edit this file to customize thresholds, logging, and defaults.
+
+For more information, visit: https://github.com/danielnovais-tech/starlink_connectivity_tools.py
         """
     )
     
@@ -337,43 +418,63 @@ Examples:
     
     parser.add_argument(
         '--host',
-        help='Starlink router IP address (overrides config)'
+        help='Starlink router IP address (default: from config or 192.168.100.1)',
+        metavar='IP'
     )
     
     parser.add_argument(
         '--interval',
         type=int,
-        help='Monitoring interval in seconds (for monitor command)'
+        help='Monitoring interval in seconds (default: from config or 60)',
+        metavar='SECONDS'
     )
     
     parser.add_argument(
         '--duration',
         type=int,
-        help='Monitoring duration in seconds (for monitor command)'
+        help='Monitoring duration in seconds (for monitor command)',
+        metavar='SECONDS'
     )
     
     parser.add_argument(
         '--hours',
         type=int,
         default=24,
-        help='Hours of data for report/export commands'
+        help='Hours of data for report/export commands (default: 24)',
+        metavar='HOURS'
     )
     
     parser.add_argument(
         '--output',
         default='starlink_data.json',
-        help='Output file for export command'
+        help='Output file for export command (default: starlink_data.json)',
+        metavar='FILE'
+    )
+    
+    parser.add_argument(
+        '--format',
+        choices=['json', 'csv'],
+        default='json',
+        help='Export format: json or csv (default: json)'
     )
     
     parser.add_argument(
         '--log-level',
         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
-        help='Logging level (overrides config)'
+        help='Logging level (default: from config or INFO)',
+        metavar='LEVEL'
     )
     
     parser.add_argument(
         '--log-file',
-        help='Log file path (overrides config)'
+        help='Log file path (default: from config or stderr only)',
+        metavar='FILE'
+    )
+    
+    parser.add_argument(
+        '--version',
+        action='version',
+        version='%(prog)s 0.1.0'
     )
     
     args = parser.parse_args()
@@ -410,7 +511,7 @@ Examples:
             cli.set_thresholds_interactive()
         
         elif args.command == 'export':
-            cli.export_data(filename=args.output, hours=args.hours)
+            cli.export_data(filename=args.output, hours=args.hours, format=args.format)
         
         elif args.command == 'connection':
             cli.print_connection_manager_status()

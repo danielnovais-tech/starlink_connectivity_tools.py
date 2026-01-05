@@ -4,7 +4,7 @@ Configuration management for Starlink Monitor
 
 import json
 import os
-from typing import Dict, Any
+from typing import Dict, Any, Optional, List
 
 
 DEFAULT_CONFIG = {
@@ -23,6 +23,37 @@ DEFAULT_CONFIG = {
         "default_host": "192.168.100.1",
         "history_size": 1000,
         "default_interval": 60,
+    }
+}
+
+# Validation rules
+CONFIG_SCHEMA = {
+    "thresholds": {
+        "type": dict,
+        "required_keys": ["min_download_speed", "max_latency", "max_packet_loss", "max_obstruction"],
+        "validators": {
+            "min_download_speed": lambda x: isinstance(x, (int, float)) and x > 0,
+            "max_latency": lambda x: isinstance(x, (int, float)) and x > 0,
+            "max_packet_loss": lambda x: isinstance(x, (int, float)) and 0 <= x <= 100,
+            "max_obstruction": lambda x: isinstance(x, (int, float)) and 0 <= x <= 100,
+        }
+    },
+    "logging": {
+        "type": dict,
+        "required_keys": ["level", "format"],
+        "validators": {
+            "level": lambda x: x in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+            "format": lambda x: isinstance(x, str) and len(x) > 0,
+        }
+    },
+    "monitor": {
+        "type": dict,
+        "required_keys": ["default_host", "history_size", "default_interval"],
+        "validators": {
+            "default_host": lambda x: isinstance(x, str) and len(x) > 0,
+            "history_size": lambda x: isinstance(x, int) and x > 0,
+            "default_interval": lambda x: isinstance(x, int) and x > 0,
+        }
     }
 }
 
@@ -119,3 +150,37 @@ class Config:
             if key in self.config['thresholds']:
                 self.config['thresholds'][key] = value
         self.save_config()
+    
+    def validate(self) -> tuple[bool, List[str]]:
+        """
+        Validate configuration against schema
+        
+        Returns:
+            Tuple of (is_valid, list_of_errors)
+        """
+        errors = []
+        
+        for section, schema in CONFIG_SCHEMA.items():
+            if section not in self.config:
+                errors.append(f"Missing required section: {section}")
+                continue
+            
+            section_config = self.config[section]
+            
+            # Check type
+            if not isinstance(section_config, schema["type"]):
+                errors.append(f"Section '{section}' must be a {schema['type'].__name__}")
+                continue
+            
+            # Check required keys
+            for required_key in schema.get("required_keys", []):
+                if required_key not in section_config:
+                    errors.append(f"Missing required key '{required_key}' in section '{section}'")
+            
+            # Validate values
+            for key, validator in schema.get("validators", {}).items():
+                if key in section_config:
+                    if not validator(section_config[key]):
+                        errors.append(f"Invalid value for '{section}.{key}': {section_config[key]}")
+        
+        return (len(errors) == 0, errors)
