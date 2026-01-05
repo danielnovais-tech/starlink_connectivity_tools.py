@@ -9,7 +9,6 @@ traffic coordination.
 
 import requests
 from typing import Optional, Dict, Any, List
-import json
 
 
 class SpaceSafetyAPI:
@@ -74,7 +73,7 @@ class SpaceSafetyAPI:
             Response from the API containing submission status and details
             
         Raises:
-            requests.exceptions.RequestException: If the API request fails
+            Exception: If the API request fails
         """
         endpoint = f"{self.base_url}/api/v1/ephemeris/submit"
         
@@ -98,7 +97,7 @@ class SpaceSafetyAPI:
             
         Raises:
             FileNotFoundError: If the file doesn't exist
-            requests.exceptions.RequestException: If the API request fails
+            Exception: If the API request fails
         """
         endpoint = f"{self.base_url}/api/v1/ephemeris/upload"
         
@@ -150,7 +149,7 @@ class SpaceSafetyAPI:
             }
             
         Raises:
-            requests.exceptions.RequestException: If the API request fails
+            Exception: If the API request fails
         """
         endpoint = f"{self.base_url}/api/v1/screening/conjunction"
         
@@ -181,7 +180,7 @@ class SpaceSafetyAPI:
             List of Starlink satellites with their current orbital parameters
             
         Raises:
-            requests.exceptions.RequestException: If the API request fails
+            Exception: If the API request fails
         """
         endpoint = f"{self.base_url}/api/v1/constellation/data"
         
@@ -209,7 +208,7 @@ class SpaceSafetyAPI:
             }
             
         Raises:
-            requests.exceptions.RequestException: If the API request fails
+            Exception: If the API request fails
         """
         endpoint = f"{self.base_url}/api/v1/status/{submission_id}"
         
