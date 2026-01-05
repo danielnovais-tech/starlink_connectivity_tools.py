@@ -1,5 +1,7 @@
 """Enhanced diagnostics with Starlink telemetry integration."""
 
+import json
+import numpy as np
 from typing import Dict, Any, Optional, List
 from datetime import datetime, timedelta
 from collections import deque
@@ -237,8 +239,6 @@ class DiagnosticsEngine:
         """Establish performance baseline from historical data."""
         if len(self.telemetry_history) < 10:
             return
-
-        import numpy as np
         
         # Use recent good performance as baseline
         recent_data = list(self.telemetry_history)[-100:]
@@ -316,8 +316,6 @@ class DiagnosticsEngine:
 
         if not recent_telemetry:
             return {"error": "No historical data available"}
-
-        import numpy as np
         
         # Extract time series data
         timestamps = [t["timestamp"] for t in recent_telemetry]
@@ -363,8 +361,6 @@ class DiagnosticsEngine:
         Args:
             filepath: Path to save report
         """
-        import json
-        
         report = {
             "generated_at": datetime.now().isoformat(),
             "last_diagnostic_run": self.last_diagnostic_run.isoformat() if self.last_diagnostic_run else None,

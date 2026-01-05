@@ -1,6 +1,7 @@
 """Unified satellite connection management with automatic failover."""
 
 import time
+import random
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 from enum import Enum
@@ -95,8 +96,6 @@ class SatelliteConnection:
 
     def _get_simulated_metrics(self) -> Dict[str, Any]:
         """Generate simulated metrics for non-Starlink connections."""
-        import random
-        
         base_latency = {
             ConnectionType.IRIDIUM: 1500,
             ConnectionType.INMARSAT: 800,

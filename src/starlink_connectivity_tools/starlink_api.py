@@ -3,6 +3,7 @@
 import time
 from typing import Dict, Any, Optional, List
 from datetime import datetime
+import numpy as np
 from loguru import logger
 
 try:
@@ -180,26 +181,33 @@ class StarlinkAPI:
     def unstow(self) -> bool:
         """
         Unstow the Starlink dish (move to operational position).
+        
+        Note: The Starlink API doesn't have a dedicated unstow command.
+        The dish automatically unstows when it needs to acquire satellites.
+        This method triggers a status check which may prompt the dish to begin searching.
 
         Returns:
-            True if unstow command was successful
+            True if command was successful
         """
         if self.simulation_mode:
             logger.info("SIMULATION: Unstowing dish")
             return True
 
         try:
+            # There's no explicit unstow command in the API
+            # The dish unstows automatically when it starts searching for satellites
+            # We trigger a status check which may help initiate this
             request = device_pb2.Request()
-            request.dish_get_status.SetInParent()  # Unstow happens automatically when requesting status
+            request.dish_get_status.SetInParent()
 
             with self.context as channel:
                 channel.call(request)
 
-            logger.info("Dish unstow initiated")
+            logger.info("Triggered dish status check (unstow happens automatically)")
             return True
 
         except Exception as e:
-            logger.error(f"Error unstowing dish: {e}")
+            logger.error(f"Error triggering unstow: {e}")
             return False
 
     def get_history(self, samples: int = 300) -> Dict[str, Any]:
@@ -233,6 +241,9 @@ class StarlinkAPI:
                     "current_cell_id": history.current_cell_id,
                     "timestamp": datetime.now().isoformat(),
                 }
+            else:
+                logger.warning("No history data in response")
+                return self._get_simulated_history(samples)
 
         except Exception as e:
             logger.error(f"Error getting history: {e}")
@@ -284,8 +295,6 @@ class StarlinkAPI:
 
     def _get_simulated_history(self, samples: int) -> Dict[str, Any]:
         """Generate simulated history data for testing."""
-        import numpy as np
-        
         latency = list(30 + 10 * np.random.randn(samples))
         downlink = list(50_000_000 + 10_000_000 * np.random.randn(samples))
         uplink = list(10_000_000 + 2_000_000 * np.random.randn(samples))

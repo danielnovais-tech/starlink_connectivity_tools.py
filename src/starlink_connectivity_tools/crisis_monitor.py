@@ -1,6 +1,7 @@
 """Crisis-optimized monitoring with adjustable thresholds and automatic recovery."""
 
 import time
+import numpy as np
 from typing import Dict, Any, Optional, List, Callable
 from datetime import datetime, timedelta
 from enum import Enum
@@ -375,8 +376,6 @@ class CrisisMonitor:
         latencies = [h["metrics"].get("latency_ms", 0) for h in recent_history]
         downlinks = [h["metrics"].get("downlink_mbps", 0) for h in recent_history]
         uplinks = [h["metrics"].get("uplink_mbps", 0) for h in recent_history]
-
-        import numpy as np
         
         report = {
             "period_hours": hours,
@@ -413,6 +412,7 @@ class CrisisMonitor:
             filepath: Path to export file
             hours: Number of hours of data to export
         """
+        import json
         import json
         
         cutoff_time = datetime.now() - timedelta(hours=hours)
