@@ -3,6 +3,7 @@ Power management for energy-constrained crisis scenarios
 """
 import time
 import logging
+import threading
 from typing import Dict, List
 from dataclasses import dataclass
 from enum import Enum
@@ -171,21 +172,22 @@ class PowerManager:
         self.scheduled_sleep = True
         
         def sleep_cycle():
-            import threading
-            
             while self.scheduled_sleep:
                 # Stay active
                 logger.info(f"Active for {active_duration} seconds")
                 time.sleep(active_duration)
+                
+                # Store current mode before sleeping
+                previous_mode = self.power_mode
                 
                 # Sleep
                 logger.info(f"Sleeping for {sleep_duration} seconds")
                 self.set_power_mode(PowerMode.SURVIVAL)
                 time.sleep(sleep_duration)
                 
-                # Wake up
+                # Wake up and restore previous mode
                 logger.info("Waking up")
-                self.set_power_mode(self.power_mode)
+                self.set_power_mode(previous_mode)
         
         thread = threading.Thread(target=sleep_cycle, daemon=True)
         thread.start()
@@ -233,11 +235,14 @@ class PowerManager:
     
     def get_power_report(self) -> Dict:
         """Generate power consumption report"""
+        battery_percent = (self.battery_level / self.battery_capacity * 100 
+                          if self.battery_capacity > 0 else 0.0)
+        
         report = {
             'power_mode': self.power_mode.value,
             'battery_level_wh': self.battery_level,
             'battery_capacity_wh': self.battery_capacity,
-            'battery_percent': (self.battery_level / self.battery_capacity) * 100,
+            'battery_percent': battery_percent,
             'estimated_runtime_hours': self.estimated_runtime,
             'total_power_consumption_w': self.get_total_power_consumption(),
             'active_components': list(self.active_components),
