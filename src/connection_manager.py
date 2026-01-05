@@ -9,6 +9,7 @@ from typing import Dict, List, Optional, Tuple
 from enum import Enum
 import subprocess
 import json
+import random
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -37,6 +38,13 @@ class ConnectionMetrics:
 
 class SatelliteConnectionManager:
     """Manages satellite connections with optimization for crisis scenarios"""
+    
+    # Constants for connection quality scoring
+    MAX_LATENCY_FOR_SCORING = 1000  # ms
+    MAX_BANDWIDTH_FOR_SCORING = 200  # Mbps
+    MAX_PACKET_LOSS_FOR_SCORING = 100  # percentage
+    MIN_SIGNAL_STRENGTH = -100  # dBm
+    SIGNAL_RANGE = 60  # dBm
     
     def __init__(self, config_path: str = None):
         self.connections: Dict[str, ConnectionStatus] = {}
@@ -99,7 +107,6 @@ class SatelliteConnectionManager:
         In real implementation, would use GPS and satellite ephemeris data
         """
         # Simulate satellite visibility check
-        import random
         return random.random() > 0.3  # 70% chance of visibility
     
     def connect(self, connection_id: str) -> bool:
@@ -143,9 +150,6 @@ class SatelliteConnectionManager:
         Measure connection quality metrics
         In real implementation, would perform actual network tests
         """
-        import random
-        import time
-        
         # Simulated metrics
         return ConnectionMetrics(
             latency=random.uniform(20, 100),
@@ -246,10 +250,10 @@ class SatelliteConnectionManager:
         }
         
         # Normalize and weight each metric
-        latency_score = max(0, 1 - (metrics.latency / 1000)) * weights['latency']
-        bandwidth_score = min(1, metrics.bandwidth_down / 200) * weights['bandwidth']
-        packet_loss_score = max(0, 1 - (metrics.packet_loss / 100)) * weights['packet_loss']
-        signal_score = ((metrics.signal_strength + 100) / 60) * weights['signal']
+        latency_score = max(0, 1 - (metrics.latency / self.MAX_LATENCY_FOR_SCORING)) * weights['latency']
+        bandwidth_score = min(1, metrics.bandwidth_down / self.MAX_BANDWIDTH_FOR_SCORING) * weights['bandwidth']
+        packet_loss_score = max(0, 1 - (metrics.packet_loss / self.MAX_PACKET_LOSS_FOR_SCORING)) * weights['packet_loss']
+        signal_score = ((metrics.signal_strength - self.MIN_SIGNAL_STRENGTH) / self.SIGNAL_RANGE) * weights['signal']
         
         return latency_score + bandwidth_score + packet_loss_score + signal_score
     
