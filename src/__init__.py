@@ -1,4 +1,8 @@
 """
+Starlink Connectivity Tools
+"""
+
+__version__ = '0.1.0'
 Starlink Connectivity Tools - Core Modules
 """
 
