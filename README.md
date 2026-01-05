@@ -18,7 +18,7 @@ Official API for managing Starlink accounts and devices, primarily targeted at e
 
 The Starlink Enterprise API uses **OpenID Connect (OIDC)** for authentication.
 
-**Well-known configuration URL:** `/api/auth/.well-known/openid-configuration`
+**Well-known configuration URL:** `https://web-api.starlink.com/enterprise/api/auth/.well-known/openid-configuration`
 
 **Authentication Process:**
 1. Obtain tokens from the OIDC provider
