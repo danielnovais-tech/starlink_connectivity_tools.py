@@ -326,6 +326,8 @@ class StarlinkSimpleMonitor:
     def _send_webhook_notification(self, notification: Dict):
         """Send notification to webhook (placeholder for implementation)"""
         # This would be implemented based on specific notification service
+        # Example: requests.post(self.config['webhook_url'], json=notification)
+        logging.debug(f"Webhook notification not configured. Notification: {notification['type']} - {notification['message']}")
         pass
     
     def run_single_check(self) -> bool:
@@ -382,10 +384,13 @@ class StarlinkSimpleMonitor:
                 
                 if self.config.get('auto_reboot_on_persistent_issues', True):
                     self.reboot_dish()
-                    # Wait after reboot
+                    # Wait after reboot with ability to interrupt
                     wait_time = 300  # 5 minutes
                     logging.info(f"Waiting {wait_time}s for dish to reboot and reconnect...")
-                    time.sleep(wait_time)
+                    for _ in range(wait_time):
+                        if not self.monitoring:
+                            break
+                        time.sleep(1)
                     self.issue_count = 0
                 else:
                     logging.warning("Auto-reboot disabled. Manual intervention required.")
