@@ -1,4 +1,10 @@
 """
+Starlink Connectivity Tools
+
+A Python toolkit for managing Starlink satellite connections, including
+bandwidth optimization, failover handling, power management, and diagnostics.
+"""
+
 Starlink Connectivity Tools - Core Modules
 """
 
@@ -52,6 +58,14 @@ from .power_manager import PowerManager
 from .diagnostics import Diagnostics
 
 __all__ = [
+    'ConnectionManager',
+    'BandwidthOptimizer',
+    'FailoverHandler',
+    'PowerManager',
+    'Diagnostics',
+]
+
+__version__ = '0.1.0'
     "ConnectionManager",
     "BandwidthOptimizer",
     "FailoverHandler",
