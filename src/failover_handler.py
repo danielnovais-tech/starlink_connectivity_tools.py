@@ -3,7 +3,7 @@ Failover handling for maintaining connectivity
 """
 import time
 import logging
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 from dataclasses import dataclass
 from enum import Enum
 
@@ -207,7 +207,7 @@ class FailoverHandler:
             logger.error(f"Failback failed: {e}")
             return False
     
-    def get_failover_status(self) -> Dict:
+    def get_failover_status(self) -> Dict[str, Any]:
         """Get current failover status"""
         return {
             'strategy': self.strategy.value,
@@ -220,7 +220,7 @@ class FailoverHandler:
             'timestamp': time.time()
         }
     
-    def enable_backup(self, connection_id: str):
+    def enable_backup(self, connection_id: str) -> None:
         """Enable a specific backup connection"""
         for backup in self.backup_connections:
             if backup.connection_id == connection_id:
@@ -230,7 +230,7 @@ class FailoverHandler:
         
         logger.warning(f"Backup not found: {connection_id}")
     
-    def disable_backup(self, connection_id: str):
+    def disable_backup(self, connection_id: str) -> None:
         """Disable a specific backup connection"""
         for backup in self.backup_connections:
             if backup.connection_id == connection_id:
