@@ -1,0 +1,3 @@
+starlink-client
+protobuf
+grpcio
