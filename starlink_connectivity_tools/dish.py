@@ -79,8 +79,8 @@ class StarlinkDish:
             "pop_ping_latency_ms": random.uniform(20, 60),
             "stowed": self._stowed,
             "heating": random.choice([True, False]),
-            "motor_stuck": random.choice([False, False, False, True]),  # Rarely true
-            "thermal_throttle": random.choice([False, False, True]),  # Sometimes true
+            "motor_stuck": random.random() < 0.25,  # 25% chance
+            "thermal_throttle": random.random() < 0.33,  # 33% chance
             "unexpected_outages": random.randint(0, 5),
         }
         
