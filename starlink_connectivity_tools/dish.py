@@ -23,6 +23,14 @@ class StarlinkDish:
     DEFAULT_IP = "192.168.100.1"
     DEFAULT_PORT = 9200
     
+    # Emergency condition thresholds
+    OBSTRUCTION_THRESHOLD = 10.0  # percentage
+    LATENCY_THRESHOLD = 100.0  # milliseconds
+    
+    # Simulation probabilities
+    MOTOR_STUCK_PROBABILITY = 0.25
+    THERMAL_THROTTLE_PROBABILITY = 0.33
+    
     def __init__(self, ip: str = DEFAULT_IP, port: int = DEFAULT_PORT):
         """
         Initialize connection to Starlink dish.
@@ -79,8 +87,8 @@ class StarlinkDish:
             "pop_ping_latency_ms": random.uniform(20, 60),
             "stowed": self._stowed,
             "heating": random.choice([True, False]),
-            "motor_stuck": random.random() < 0.25,  # 25% chance
-            "thermal_throttle": random.random() < 0.33,  # 33% chance
+            "motor_stuck": random.random() < self.MOTOR_STUCK_PROBABILITY,
+            "thermal_throttle": random.random() < self.THERMAL_THROTTLE_PROBABILITY,
             "unexpected_outages": random.randint(0, 5),
         }
         
@@ -161,13 +169,13 @@ class StarlinkDish:
         if status["motor_stuck"]:
             return "MOTOR_STUCK"
         
-        if status["obstruction_percentage"] > 10:
+        if status["obstruction_percentage"] > self.OBSTRUCTION_THRESHOLD:
             return "HIGH_OBSTRUCTION"
         
         if status["thermal_throttle"]:
             return "THERMAL_THROTTLE"
         
-        if status["pop_ping_latency_ms"] > 100:
+        if status["pop_ping_latency_ms"] > self.LATENCY_THRESHOLD:
             return "HIGH_LATENCY"
         
         return None
