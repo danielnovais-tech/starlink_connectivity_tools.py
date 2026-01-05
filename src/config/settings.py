@@ -58,7 +58,13 @@ class Settings:
         Returns:
             Configuration value or default
         """
-        keys = key.split(".")
+        if not key or not isinstance(key, str):
+            return default
+        
+        keys = [k for k in key.split(".") if k]  # Filter out empty strings
+        if not keys:
+            return default
+            
         value = self.config
         for k in keys:
             if isinstance(value, dict):
@@ -78,9 +84,15 @@ class Settings:
             value: Value to set
 
         Returns:
-            bool: True if set successfully
+            bool: True if set successfully, False if key is invalid
         """
-        keys = key.split(".")
+        if not key or not isinstance(key, str):
+            return False
+            
+        keys = [k for k in key.split(".") if k]  # Filter out empty strings
+        if not keys:
+            return False
+            
         config = self.config
         for k in keys[:-1]:
             if k not in config:
