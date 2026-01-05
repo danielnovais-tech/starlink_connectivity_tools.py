@@ -10,6 +10,7 @@ import os
 import time
 import json
 import logging
+import random
 from datetime import datetime, timedelta
 
 # Add parent directory to path to allow imports when running directly
@@ -269,11 +270,13 @@ class VenezuelaCrisisScenario:
         logger.info(f"=== STARTING MEDICAL MISSION ({duration_hours} hours) ===")
         
         start_time = time.time()
+        end_time = start_time + (duration_hours * 3600)
         mission_data = {
             'patients_treated': 0,
             'medical_data_sent': 0,  # MB
             'supply_requests': 0,
-            'connectivity_issues': 0
+            'connectivity_issues': 0,
+            'status_updates': []
         }
         
         # Setup for medical mission
@@ -292,7 +295,7 @@ class VenezuelaCrisisScenario:
             self.failover_handler.initiate_failover("Medical mission connectivity failed")
         
         # Run mission
-        while time.time() - start_time < duration_hours * 3600:
+        while time.time() < end_time:
             try:
                 # Simulate medical activities
                 self._simulate_patient_treatment(mission_data)
@@ -305,8 +308,10 @@ class VenezuelaCrisisScenario:
                     self._handle_mission_connectivity_issue()
                 
                 # Update status every 30 minutes
-                if int((time.time() - start_time) / 1800) > len(mission_data.get('status_updates', [])):
+                elapsed_time = time.time() - start_time
+                if int(elapsed_time / 1800) > len(mission_data['status_updates']):
                     self._send_mission_status(mission_data)
+                    mission_data['status_updates'].append(time.time())
                 
                 time.sleep(60)  # Check every minute
                 
@@ -324,21 +329,18 @@ class VenezuelaCrisisScenario:
     
     def _simulate_patient_treatment(self, mission_data: dict):
         """Simulate patient treatment"""
-        import random
         if random.random() > 0.7:  # 30% chance per minute
             mission_data['patients_treated'] += 1
             logger.info(f"Patient treated. Total: {mission_data['patients_treated']}")
     
     def _simulate_supply_request(self, mission_data: dict):
         """Simulate medical supply request"""
-        import random
         if random.random() > 0.9:  # 10% chance per minute
             mission_data['supply_requests'] += 1
             logger.info(f"Supply request sent. Total: {mission_data['supply_requests']}")
     
     def _simulate_medical_data_sync(self, mission_data: dict):
         """Simulate medical data synchronization"""
-        import random
         if random.random() > 0.8:  # 20% chance per minute
             data_size = random.uniform(0.1, 5.0)  # MB
             mission_data['medical_data_sent'] += data_size
