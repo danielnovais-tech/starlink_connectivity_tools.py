@@ -95,6 +95,26 @@ print(f"Email: {account['email']}")
 print(f"Service Plan: {account['service_plan']}")
 ```
 
+### Explicit Secure/Insecure Connection
+
+```python
+from starlink_connectivity_tools import StarlinkClient
+
+# Force secure channel for local connection (optional)
+secure_client = StarlinkClient(
+    target="192.168.100.1:9200",
+    secure=True
+)
+
+# Force insecure channel for testing (not recommended for production)
+insecure_client = StarlinkClient(
+    target="remote.starlink.com:9200",
+    secure=False  # Only for testing/development
+)
+```
+
+**Note:** The library automatically detects private IP addresses (RFC 1918: 10.x.x.x, 172.16.x.x-172.31.x.x, 192.168.x.x) and uses insecure channels for them. For all other addresses or when an auth_token is provided, it uses secure SSL/TLS channels.
+
 ## Available Methods
 
 ### get_status()
@@ -267,21 +287,38 @@ account = client.get_account_data()
 
 ### Local Connection
 
-The default connection is to the local Starlink dish at `192.168.100.1:9200`. This requires you to be on the same network as your Starlink router.
+The default connection is to the local Starlink dish at `192.168.100.1:9200`. This requires you to be on the same network as your Starlink router. Local connections automatically use insecure gRPC channels.
 
 ```python
-client = StarlinkClient()  # Uses default local address
+client = StarlinkClient()  # Uses default local address with insecure channel
 ```
+
+The library automatically detects RFC 1918 private IP addresses and uses insecure channels for them:
+- 10.0.0.0/8 (10.x.x.x)
+- 172.16.0.0/12 (172.16.x.x - 172.31.x.x)
+- 192.168.0.0/16 (192.168.x.x)
 
 ### Remote Connection
 
-For remote connections, you need an authentication token:
+For remote connections, you need an authentication token. Remote connections automatically use secure SSL/TLS channels:
 
 ```python
 client = StarlinkClient(
     target="remote.starlink.com:9200",
     auth_token="your-auth-token"
 )
+```
+
+### Manual Channel Control
+
+You can override automatic detection with the `secure` parameter:
+
+```python
+# Force secure channel even for local IP
+client = StarlinkClient(target="192.168.100.1:9200", secure=True)
+
+# Force insecure channel (not recommended except for testing)
+client = StarlinkClient(target="test.local:9200", secure=False)
 ```
 
 ## Error Handling

@@ -6,6 +6,7 @@ via gRPC protocol.
 """
 
 import grpc
+import ipaddress
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 
@@ -20,25 +21,49 @@ class StarlinkClient:
     Args:
         target: Connection target (default: "192.168.100.1:9200" for local connection)
         auth_token: Optional authentication token for remote connections
+        secure: Force secure/insecure channel (overrides auto-detection)
     """
     
-    def __init__(self, target: str = "192.168.100.1:9200", auth_token: Optional[str] = None):
+    def __init__(self, target: str = "192.168.100.1:9200", auth_token: Optional[str] = None, 
+                 secure: Optional[bool] = None):
         """Initialize the Starlink client."""
         self.target = target
         self.auth_token = auth_token
+        self._secure = secure
         self._channel = None
         self._stub = None
+    
+    def _is_private_ip(self, hostname: str) -> bool:
+        """Check if hostname is a private IP address."""
+        try:
+            # Extract IP from hostname:port
+            ip_str = hostname.split(':')[0]
+            ip = ipaddress.ip_address(ip_str)
+            return ip.is_private
+        except (ValueError, IndexError):
+            # Not a valid IP address, assume it's a hostname (remote)
+            return False
     
     def connect(self) -> None:
         """Establish connection to the Starlink dish."""
         if self._channel is None:
-            # Use secure channel for remote connections, insecure for local
-            if self.auth_token or not self.target.startswith("192.168."):
-                # Remote connection - use secure channel
+            # Determine if we should use secure channel
+            if self._secure is not None:
+                # Explicit secure parameter takes precedence
+                use_secure = self._secure
+            elif self.auth_token:
+                # If auth token provided, use secure channel
+                use_secure = True
+            else:
+                # Auto-detect: use secure for non-private IPs
+                use_secure = not self._is_private_ip(self.target)
+            
+            if use_secure:
+                # Remote/secure connection
                 credentials = grpc.ssl_channel_credentials()
                 self._channel = grpc.secure_channel(self.target, credentials)
             else:
-                # Local connection - use insecure channel
+                # Local/insecure connection
                 self._channel = grpc.insecure_channel(self.target)
             # Note: In a real implementation, this would use the generated gRPC stub
             # from the Starlink proto files
