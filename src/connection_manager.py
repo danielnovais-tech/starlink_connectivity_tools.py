@@ -7,7 +7,6 @@ import logging
 from dataclasses import dataclass, asdict
 from typing import Dict, List, Optional, Tuple
 from enum import Enum
-import subprocess
 import json
 import random
 
@@ -182,6 +181,10 @@ class SatelliteConnectionManager:
     
     def start_monitoring(self, interval: int = 30):
         """Start continuous monitoring of connection quality"""
+        if self.monitoring:
+            logger.warning("Monitoring is already active")
+            return
+            
         self.monitoring = True
         
         def monitor():
@@ -253,7 +256,7 @@ class SatelliteConnectionManager:
         latency_score = max(0, 1 - (metrics.latency / self.MAX_LATENCY_FOR_SCORING)) * weights['latency']
         bandwidth_score = min(1, metrics.bandwidth_down / self.MAX_BANDWIDTH_FOR_SCORING) * weights['bandwidth']
         packet_loss_score = max(0, 1 - (metrics.packet_loss / self.MAX_PACKET_LOSS_FOR_SCORING)) * weights['packet_loss']
-        signal_score = ((metrics.signal_strength - self.MIN_SIGNAL_STRENGTH) / self.SIGNAL_RANGE) * weights['signal']
+        signal_score = max(0, min(1, (metrics.signal_strength - self.MIN_SIGNAL_STRENGTH) / self.SIGNAL_RANGE)) * weights['signal']
         
         return latency_score + bandwidth_score + packet_loss_score + signal_score
     
