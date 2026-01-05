@@ -1,0 +1,4 @@
+# No external dependencies required for the simulated implementation
+# In production, you would need:
+# grpcio>=1.50.0
+# grpcio-tools>=1.50.0
