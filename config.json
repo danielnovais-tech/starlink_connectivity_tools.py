@@ -1,0 +1,13 @@
+{
+    "minimum_viable_bandwidth": 2.0,
+    "max_acceptable_latency": 500,
+    "crisis_min_bandwidth": 1.0,
+    "crisis_max_latency": 1000,
+    "backup_connections": [
+        {
+            "type": "cellular",
+            "priority": 1,
+            "cost_per_mb": 0.05
+        }
+    ]
+}
