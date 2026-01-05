@@ -21,8 +21,9 @@ def reboot_command(args):
     """
     Reboot the Starlink dish.
     
-    This command initiates a reboot of the Starlink dish, which can help
-    resolve connectivity issues or apply configuration changes.
+    This command demonstrates the usage example for rebooting the Starlink dish.
+    In a production environment, this would initiate a reboot of the Starlink dish,
+    which can help resolve connectivity issues or apply configuration changes.
     
     Usage Example:
         python tools/starlink_monitor_cli.py reboot
@@ -30,25 +31,30 @@ def reboot_command(args):
     Args:
         args: Parsed command-line arguments
     """
-    print("Starlink Reboot Command")
+    print("Starlink Reboot Command - Usage Example")
     print("=" * 50)
-    print("\nInitiating reboot of Starlink dish...")
     print("\nUsage Example:")
     print("  python tools/starlink_monitor_cli.py reboot")
-    print("\nThis command will:")
+    print("\nIn production, this command would:")
     print("  - Send a reboot signal to the Starlink dish")
-    print("  - Wait for the dish to restart")
+    print("  - Wait for the dish to restart (2-3 minutes)")
     print("  - Verify connectivity after reboot")
-    print("\nNote: The dish will be offline for 2-3 minutes during reboot.")
-    print("\n✓ Reboot command executed successfully")
+    print("  - Return status of the reboot operation")
+    print("\nExpected Output:")
+    print("  ✓ Reboot signal sent to Starlink dish")
+    print("  ⏳ Waiting for dish to restart...")
+    print("  ✓ Dish online - connectivity restored")
+    print("\n✓ Command usage example displayed successfully")
 
 
 def thresholds_command(args):
     """
     Display and manage connectivity thresholds.
     
-    This command shows the current connectivity thresholds and allows
-    configuration of alert levels for various metrics.
+    This command demonstrates the usage example for displaying and managing
+    connectivity thresholds. In a production environment, this would show the
+    current connectivity thresholds and allow configuration of alert levels
+    for various metrics.
     
     Usage Example:
         python tools/starlink_monitor_cli.py thresholds
@@ -56,21 +62,22 @@ def thresholds_command(args):
     Args:
         args: Parsed command-line arguments
     """
-    print("Starlink Connectivity Thresholds")
+    print("Starlink Connectivity Thresholds - Usage Example")
     print("=" * 50)
-    print("\nCurrent Threshold Configuration:")
     print("\nUsage Example:")
     print("  python tools/starlink_monitor_cli.py thresholds")
-    print("\nAvailable Thresholds:")
+    print("\nIn production, this would display current threshold configuration:")
+    print("\nExample Threshold Values:")
     print("  - Latency threshold: 50ms (warn), 100ms (critical)")
     print("  - Packet loss threshold: 1% (warn), 5% (critical)")
     print("  - Downtime threshold: 30s (warn), 60s (critical)")
     print("  - Signal strength threshold: -90dBm (warn), -95dBm (critical)")
-    print("\nThreshold Monitoring:")
-    print("  - Alerts are triggered when metrics exceed thresholds")
-    print("  - Notifications can be configured via email or webhook")
-    print("  - Historical threshold violations are logged")
-    print("\n✓ Thresholds displayed successfully")
+    print("\nExample Threshold Monitoring Features:")
+    print("  - Alerts triggered when metrics exceed thresholds")
+    print("  - Notifications via email or webhook")
+    print("  - Historical threshold violations logged")
+    print("  - Customizable threshold values per metric")
+    print("\n✓ Command usage example displayed successfully")
 
 
 def main():
