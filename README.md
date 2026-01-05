@@ -12,7 +12,6 @@ Official API for managing Starlink accounts and devices, primarily targeted at e
 
 **Documentation:** 
 - Available via Swagger UI at [https://web-api.starlink.com/enterprise/swagger/index.html](https://web-api.starlink.com/enterprise/swagger/index.html)
-- Interactive endpoints can be explored there or at related documentation sites
 
 ### Authentication
 
@@ -21,8 +20,8 @@ The Starlink Enterprise API uses **OpenID Connect (OIDC)** for authentication.
 **Well-known configuration URL:** `https://web-api.starlink.com/enterprise/api/auth/.well-known/openid-configuration`
 
 **Authentication Process:**
-1. Obtain tokens from the OIDC provider
-2. Attach tokens to API requests using Bearer token in headers
+1. Obtain access tokens from the OIDC provider
+2. Attach tokens to API requests using the Authorization header: `Authorization: Bearer <access_token>`
 
 **Service Accounts:**
 - Service accounts can be created in the Starlink account settings under "Service Accounts"
