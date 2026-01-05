@@ -1,5 +1,5 @@
 # Docker Compose configuration for Starlink Monitor
-version: '3.8'
+version: '3.9'
 
 services:
   starlink-monitor:
