@@ -205,3 +205,9 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Starlink Connectivity Tools
+starlink_monitor.log
+*.json
+!starlink_config.example.json
+!requirements.txt

@@ -1,0 +1,3 @@
+# Starlink Connectivity Tools - Python Dependencies
+# All dependencies are from Python standard library - no external packages required!
+# This tool is designed to work with minimal dependencies for maximum reliability
