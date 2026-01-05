@@ -34,8 +34,6 @@ This project was inspired by connectivity challenges in Venezuela and other cris
 - Automated issue detection and recommendations
 
 #### 6. Emergency Scenarios
-- Inspired by Venezuela crisis connectivity challenges
 - Special modes for humanitarian and medical operations
 - Guaranteed minimum connectivity for emergency communications
-
-This system provides a robust framework for maintaining satellite connectivity in challenging crisis scenarios, with special attention to the specific needs of emergency response teams in situations like those experienced in Venezuela.
+- Optimized for crisis response teams and aid organizations
