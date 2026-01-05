@@ -1,3 +1,26 @@
+# Starlink dependencies (optional - install manually from https://github.com/sparky8512/starlink-grpc-tools)
+# starlink-grpc>=1.2.0
+grpcio>=1.50.0
+protobuf>=4.21.0
+
+# Data processing and analysis
+numpy>=1.24.0
+pandas>=2.0.0
+
+# CLI tools
+click>=8.1.0
+rich>=13.0.0
+colorama>=0.4.6
+
+# Configuration and utilities
+python-dotenv>=1.0.0
+pyyaml>=6.0
+
+# Logging and monitoring
+loguru>=0.7.0
+
+# Date/time handling
+python-dateutil>=2.8.0
 # Core dependencies
 requests>=2.31.0
 
