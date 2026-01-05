@@ -42,10 +42,11 @@ def demonstrate_low_power_operation():
     print("\n1. INITIAL POWER STATUS")
     print("-" * 40)
     report = power_manager.get_power_report()
+    initial_power = report['total_power_consumption_w']
     print(f"Battery capacity: {report['battery_capacity_wh']:.1f} Wh")
     print(f"Battery level: {report['battery_percent']:.1f}%")
     print(f"Current power mode: {report['power_mode']}")
-    print(f"Total power consumption: {report['total_power_consumption_w']:.1f} W")
+    print(f"Total power consumption: {initial_power:.1f} W")
     print(f"Estimated runtime: {report['estimated_runtime_hours']:.1f} hours")
     
     print("\n2. COMPONENT POWER BREAKDOWN")
@@ -68,7 +69,7 @@ def demonstrate_low_power_operation():
     print(f"New power mode: {report['power_mode']}")
     print(f"Total power consumption: {report['total_power_consumption_w']:.1f} W")
     print(f"Estimated runtime: {report['estimated_runtime_hours']:.1f} hours")
-    print(f"Power reduction: {103.0 - report['total_power_consumption_w']:.1f} W saved")
+    print(f"Power reduction: {initial_power - report['total_power_consumption_w']:.1f} W saved")
     
     print("\n5. OPTIMIZED COMPONENT POWER")
     print("-" * 40)

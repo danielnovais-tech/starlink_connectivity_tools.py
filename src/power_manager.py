@@ -4,7 +4,7 @@ Power management for energy-constrained crisis scenarios
 import time
 import logging
 import threading
-from typing import Dict, List
+from typing import Dict
 from dataclasses import dataclass
 from enum import Enum
 
@@ -212,7 +212,9 @@ class PowerManager:
         current_power = self.get_total_power_consumption()
         
         if required_power >= current_power:
-            logger.warning(f"Cannot achieve target runtime with current setup")
+            logger.warning(f"Cannot achieve target runtime {target_runtime_hours}h "
+                          f"with current power {current_power:.1f}W "
+                          f"(need {required_power:.1f}W)")
             return
         
         # Adjust power mode based on requirements
