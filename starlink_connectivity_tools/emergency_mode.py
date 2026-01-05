@@ -117,11 +117,12 @@ class EmergencyMode:
             self.log("Attempting dish reboot to clear alerts...", "WARNING")
             try:
                 self.dish.reboot()
-                self.log(f"Reboot initiated, waiting {self.REBOOT_WAIT_TIME} seconds for dish to come back online...", "INFO")
-                time.sleep(self.REBOOT_WAIT_TIME)  # Wait for reboot
+                # Wait for reboot to complete and dish to stabilize before checking connectivity
+                total_wait = self.REBOOT_WAIT_TIME + self.POST_REBOOT_CHECK_DELAY
+                self.log(f"Reboot initiated, waiting {total_wait} seconds for dish to come back online...", "INFO")
+                time.sleep(total_wait)
                 
                 # Re-check connectivity
-                time.sleep(self.POST_REBOOT_CHECK_DELAY)
                 new_assessment = self.check_connectivity()
                 
                 if new_assessment and new_assessment["operational"]:
