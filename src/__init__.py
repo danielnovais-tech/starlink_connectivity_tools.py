@@ -1,5 +1,7 @@
 """
 Starlink Connectivity Tools
+Main package for satellite connectivity optimization
+"""
 
 A Python library for managing Starlink connections, optimizing bandwidth,
 handling failover scenarios, and managing power consumption.
