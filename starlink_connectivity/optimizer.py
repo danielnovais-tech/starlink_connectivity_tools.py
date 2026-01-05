@@ -98,7 +98,7 @@ class BandwidthOptimizer:
             allocation.status = "allocated"
             self.available_bandwidth -= requested_bandwidth
         else:
-            # Partial or no allocation - might need to reallocate from lower priority
+            # Insufficient bandwidth - allocate what's available
             allocation.allocated_bandwidth = self.available_bandwidth
             allocation.status = "partial" if self.available_bandwidth > 0 else "queued"
             self.available_bandwidth = 0
