@@ -567,28 +567,28 @@ Inspired by connectivity challenges in Venezuela and other crisis scenarios.
     parser.add_argument(
         '--interval',
         type=int,
-        default=60,
+        default=None,
         help='Check interval in seconds (default: 60)'
     )
     
     parser.add_argument(
         '--min-download',
         type=float,
-        default=5.0,
+        default=None,
         help='Minimum download speed in Mbps (default: 5.0)'
     )
     
     parser.add_argument(
         '--max-latency',
         type=int,
-        default=100,
+        default=None,
         help='Maximum latency in ms (default: 100)'
     )
     
     parser.add_argument(
         '--max-issues',
         type=int,
-        default=3,
+        default=None,
         help='Consecutive issues before action (default: 3)'
     )
     
@@ -650,6 +650,9 @@ Inspired by connectivity challenges in Venezuela and other crisis scenarios.
     )
     
     # Override config with command-line arguments
+    if args.interval is not None:
+        monitor.check_interval = args.interval
+    
     if args.min_download is not None:
         monitor.min_download_speed = args.min_download
     
@@ -723,13 +726,13 @@ Inspired by connectivity challenges in Venezuela and other crisis scenarios.
             print("STARLINK CONNECTIVITY MONITOR")
             print("="*60)
             print(f"Host: {args.host}")
-            print(f"Check Interval: {args.interval}s")
+            print(f"Check Interval: {monitor.check_interval}s")
             print(f"Thresholds: Download > {monitor.min_download_speed}Mbps, Latency < {monitor.max_latency}ms")
             print(f"Crisis Mode: {monitor.crisis_mode}")
             print("\nPress Ctrl+C to stop monitoring")
             print("="*60 + "\n")
             
-            monitor.start_continuous_monitoring(interval=args.interval)
+            monitor.start_continuous_monitoring()
             
             try:
                 # Keep main thread alive
