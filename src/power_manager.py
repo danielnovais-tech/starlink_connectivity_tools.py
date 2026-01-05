@@ -1,10 +1,18 @@
 """
+Power Manager
+Manages power consumption and battery optimization
+"""
+
+import logging
+from enum import Enum
+from typing import Dict
 Power management for energy-constrained crisis scenarios
 """
 import time
 import logging
 import threading
 from typing import Dict
+from typing import Dict, List
 from dataclasses import dataclass
 from enum import Enum
 
@@ -12,6 +20,137 @@ logger = logging.getLogger(__name__)
 
 
 class PowerMode(Enum):
+    """Power consumption modes"""
+    NORMAL = "normal"           # Full power operation
+    EFFICIENT = "efficient"     # Balanced power/performance
+    CONSERVATION = "conservation"  # Reduced power consumption
+    CRISIS = "crisis"           # Maximum battery preservation
+    SURVIVAL = "survival"       # Absolute minimum power
+
+
+class PowerManager:
+    """
+    Manages power consumption and battery optimization
+    """
+    
+    def __init__(self, total_battery_capacity: float = 500.0):
+        """
+        Initialize power manager
+        
+        Args:
+            total_battery_capacity: Total battery capacity in Wh
+        """
+        self.total_battery_capacity = total_battery_capacity
+        self.current_battery_capacity = total_battery_capacity
+        self.power_mode = PowerMode.NORMAL
+        
+        # Power consumption rates (watts) by mode
+        self.power_consumption_rates = {
+            PowerMode.NORMAL: 50.0,
+            PowerMode.EFFICIENT: 35.0,
+            PowerMode.CONSERVATION: 20.0,
+            PowerMode.CRISIS: 10.0,
+            PowerMode.SURVIVAL: 5.0
+        }
+        
+        logger.info(f"PowerManager initialized with {total_battery_capacity} Wh capacity")
+    
+    def set_power_mode(self, mode: PowerMode):
+        """
+        Set power consumption mode
+        
+        Args:
+            mode: Power mode to set
+        """
+        old_mode = self.power_mode
+        self.power_mode = mode
+        
+        logger.info(f"Power mode changed: {old_mode.value} -> {mode.value}")
+        logger.info(f"Power consumption: {self.power_consumption_rates[mode]} W")
+    
+    def get_current_power_consumption(self) -> float:
+        """
+        Get current power consumption
+        
+        Returns:
+            Current power consumption in watts
+        """
+        return self.power_consumption_rates[self.power_mode]
+    
+    def get_estimated_runtime(self) -> float:
+        """
+        Get estimated runtime in hours
+        
+        Returns:
+            Estimated runtime in hours
+        """
+        if self.current_battery_capacity <= 0:
+            return 0.0
+        
+        power_consumption = self.get_current_power_consumption()
+        
+        if power_consumption == 0:
+            return float('inf')
+        
+        return self.current_battery_capacity / power_consumption
+    
+    def optimize_for_battery_life(self, target_runtime_hours: float):
+        """
+        Optimize power mode to achieve target runtime
+        
+        Args:
+            target_runtime_hours: Target runtime in hours
+        """
+        logger.info(f"Optimizing for {target_runtime_hours}h runtime")
+        
+        current_runtime = self.get_estimated_runtime()
+        
+        if current_runtime >= target_runtime_hours:
+            logger.info(f"Current runtime {current_runtime:.1f}h meets target")
+            return
+        
+        # Find most efficient mode that meets target
+        for mode in [PowerMode.EFFICIENT, PowerMode.CONSERVATION, PowerMode.CRISIS, PowerMode.SURVIVAL]:
+            test_consumption = self.power_consumption_rates[mode]
+            test_runtime = self.current_battery_capacity / test_consumption
+            
+            if test_runtime >= target_runtime_hours:
+                self.set_power_mode(mode)
+                logger.info(f"Set power mode to {mode.value} for {test_runtime:.1f}h runtime")
+                return
+        
+        # If we get here, even survival mode won't meet target
+        self.set_power_mode(PowerMode.SURVIVAL)
+        logger.warning(f"Cannot meet target runtime, using SURVIVAL mode: {self.get_estimated_runtime():.1f}h")
+    
+    def consume_power(self, hours: float):
+        """
+        Simulate power consumption over time
+        
+        Args:
+            hours: Time period in hours
+        """
+        power_consumed = self.get_current_power_consumption() * hours
+        self.current_battery_capacity -= power_consumed
+        
+        if self.current_battery_capacity < 0:
+            self.current_battery_capacity = 0
+    
+    def get_power_report(self) -> Dict:
+        """
+        Get power status report
+        
+        Returns:
+            Dictionary with power information
+        """
+        return {
+            'power_mode': self.power_mode.value,
+            'battery_capacity': self.current_battery_capacity,
+            'total_capacity': self.total_battery_capacity,
+            'battery_percent': (self.current_battery_capacity / self.total_battery_capacity) * 100,
+            'power_consumption': self.get_current_power_consumption(),
+            'estimated_runtime_hours': self.get_estimated_runtime()
+        }
     """Power management modes"""
     NORMAL = "normal"
     CONSERVATION = "conservation"
@@ -215,6 +354,7 @@ class PowerManager:
             logger.warning(f"Cannot achieve target runtime {target_runtime_hours}h "
                           f"with current power {current_power:.1f}W "
                           f"(need {required_power:.1f}W)")
+            logger.warning(f"Cannot achieve target runtime with current setup")
             return
         
         # Adjust power mode based on requirements
@@ -262,3 +402,98 @@ class PowerManager:
             }
         
         return report
+Power Manager Module
+
+Manages power consumption and enables low-power modes for Starlink equipment.
+"""
+
+
+class PowerManager:
+    """Manages power consumption for Starlink equipment."""
+
+    def __init__(self):
+        """Initialize the PowerManager."""
+        self.power_mode = "normal"
+        self.low_power_enabled = False
+        self.power_consumption = 100  # Percentage
+
+    def enable_low_power_mode(self):
+        """
+        Enable low power consumption mode.
+
+        Returns:
+            bool: True if low power mode enabled successfully
+        """
+        self.low_power_enabled = True
+        self.power_mode = "low_power"
+        self.power_consumption = 50  # Reduced to 50%
+        return True
+
+    def disable_low_power_mode(self):
+        """
+        Disable low power consumption mode.
+
+        Returns:
+            bool: True if low power mode disabled successfully
+        """
+        self.low_power_enabled = False
+        self.power_mode = "normal"
+        self.power_consumption = 100
+        return True
+
+    def set_power_mode(self, mode):
+        """
+        Set power consumption mode.
+
+        Args:
+            mode: Power mode ('normal', 'low_power', 'high_performance')
+
+        Returns:
+            bool: True if mode set successfully
+        """
+        valid_modes = ["normal", "low_power", "high_performance"]
+        if mode not in valid_modes:
+            return False
+
+        self.power_mode = mode
+        if mode == "low_power":
+            self.low_power_enabled = True
+            self.power_consumption = 50
+        elif mode == "high_performance":
+            self.low_power_enabled = False
+            self.power_consumption = 120
+        else:  # normal
+            self.low_power_enabled = False
+            self.power_consumption = 100
+
+        return True
+
+    def get_power_status(self):
+        """
+        Get current power consumption status.
+
+        Returns:
+            dict: Power status information
+        """
+        return {
+            "power_mode": self.power_mode,
+            "low_power_enabled": self.low_power_enabled,
+            "power_consumption": self.power_consumption,
+        }
+
+    def estimate_runtime(self, battery_capacity):
+        """
+        Estimate runtime based on current power consumption.
+
+        Args:
+            battery_capacity: Battery capacity in Wh
+
+        Returns:
+            float: Estimated runtime in hours
+        """
+        # Simplified calculation (assuming base consumption of 100W at 100%)
+        base_consumption = 100  # Watts
+        actual_consumption = base_consumption * (self.power_consumption / 100)
+        if actual_consumption == 0:
+            return float('inf')
+        return battery_capacity / actual_consumption
