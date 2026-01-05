@@ -22,9 +22,12 @@ def generate_report(hours):
         print("Error: --hours must be a positive number", file=sys.stderr)
         return 1
     
+    now = datetime.now()
+    start_time = now - timedelta(hours=hours)
+    
     print(f"Generating performance report for the last {hours} hours...")
-    print(f"Report timestamp: {datetime.now().isoformat()}")
-    print(f"Time range: {(datetime.now() - timedelta(hours=hours)).isoformat()} to {datetime.now().isoformat()}")
+    print(f"Report timestamp: {now.isoformat()}")
+    print(f"Time range: {start_time.isoformat()} to {now.isoformat()}")
     print("\nPerformance Metrics:")
     print("- Average latency: N/A (no data collected yet)")
     print("- Average download speed: N/A (no data collected yet)")
@@ -110,9 +113,6 @@ Usage Examples:
         return generate_report(args.hours)
     elif args.command == 'export':
         return export_data(args.output)
-    else:
-        print(f"Unknown command: {args.command}", file=sys.stderr)
-        return 1
 
 
 if __name__ == '__main__':
