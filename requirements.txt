@@ -1,0 +1,9 @@
+# Starlink Connectivity Tools Requirements
+# 
+# This is a minimal implementation for demonstration purposes.
+# In a production environment, you would typically use:
+# - starlink-grpc-core (for real Starlink gRPC API integration)
+# - grpcio (for gRPC communication)
+# - protobuf (for protocol buffers)
+#
+# For this example, no external dependencies are required.
