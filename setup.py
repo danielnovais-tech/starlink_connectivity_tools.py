@@ -15,6 +15,9 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setup(
     name="starlink_connectivity_tools",
     version="0.1.0",
+    author="Daniel Novais",
+    author_email="",
+    description="A Python library for managing Starlink connections with automatic failover",
     author="Daniel Azevedo Novais",
     description="A Python library for managing Starlink satellite connectivity",
     long_description=long_description,
@@ -24,6 +27,9 @@ setup(
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
+        "Topic :: System :: Networking",
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python :: 3",
         "Topic :: Communications",
         "Topic :: System :: Networking",
         "License :: OSI Approved :: Apache Software License",
@@ -49,6 +55,10 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+    ],
+    python_requires=">=3.7",
+    install_requires=[
+        # No external dependencies required for core functionality
         "Programming Language :: Python :: 3.12",
     ],
     python_requires=">=3.8",
@@ -68,6 +78,8 @@ setup(
         "dev": [
             "pytest>=7.0.0",
             "pytest-cov>=4.0.0",
+        ],
+    },
             "black>=23.0.0",
             "flake8>=6.0.0",
             "mypy>=1.0.0",
