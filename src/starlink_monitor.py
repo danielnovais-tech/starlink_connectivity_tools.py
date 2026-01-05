@@ -256,7 +256,6 @@ class StarlinkMonitor:
     def _get_simulated_metrics(self) -> StarlinkMetrics:
         """Generate simulated metrics for testing/fallback"""
         import random
-        import time
         
         # Simulate realistic Starlink metrics
         return StarlinkMetrics(
