@@ -113,6 +113,9 @@ Usage Examples:
         return generate_report(args.hours)
     elif args.command == 'export':
         return export_data(args.output)
+    
+    # This should never be reached due to argparse validation
+    return 1
 
 
 if __name__ == '__main__':
