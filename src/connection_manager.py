@@ -5,7 +5,7 @@ import time
 import threading
 import logging
 from dataclasses import dataclass, asdict
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 from enum import Enum
 import json
 import random
@@ -44,6 +44,10 @@ class SatelliteConnectionManager:
     MAX_PACKET_LOSS_FOR_SCORING = 100  # percentage
     MIN_SIGNAL_STRENGTH = -100  # dBm
     SIGNAL_RANGE = 60  # dBm
+    
+    # Connection parameters
+    SATELLITE_VISIBILITY_THRESHOLD = 0.3  # Probability threshold for visibility
+    CONNECTION_TIMEOUT = 2  # seconds
     
     def __init__(self, config_path: str = None):
         self.connections: Dict[str, ConnectionStatus] = {}
@@ -106,7 +110,7 @@ class SatelliteConnectionManager:
         In real implementation, would use GPS and satellite ephemeris data
         """
         # Simulate satellite visibility check
-        return random.random() > 0.3  # 70% chance of visibility
+        return random.random() > self.SATELLITE_VISIBILITY_THRESHOLD  # 70% chance of visibility
     
     def connect(self, connection_id: str) -> bool:
         """Establish connection to a specific satellite"""
@@ -114,7 +118,7 @@ class SatelliteConnectionManager:
             logger.info(f"Attempting to connect to {connection_id}")
             
             # Simulate connection process
-            time.sleep(2)
+            time.sleep(self.CONNECTION_TIMEOUT)
             
             # Check connection quality
             metrics = self._measure_connection_quality(connection_id)
