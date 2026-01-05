@@ -297,11 +297,16 @@ class StarlinkSimpleMonitor:
             message: Notification message
             issue_type: Type of issue (warning, critical, info)
         """
+        # Get current metrics, but use cached data if available to avoid recursion
+        metrics = None
+        if self.performance_history:
+            metrics = self.performance_history[-1]  # Use most recent cached data
+        
         notification = {
             'timestamp': datetime.now().isoformat(),
             'type': issue_type,
             'message': message,
-            'metrics': self.get_network_stats()  # Include current metrics
+            'metrics': metrics
         }
         
         self.alerts.append(notification)
@@ -645,19 +650,19 @@ Inspired by connectivity challenges in Venezuela and other crisis scenarios.
     )
     
     # Override config with command-line arguments
-    if args.min_download:
+    if args.min_download is not None:
         monitor.min_download_speed = args.min_download
     
-    if args.max_latency:
+    if args.max_latency is not None:
         monitor.max_latency = args.max_latency
     
-    if args.max_issues:
+    if args.max_issues is not None:
         monitor.max_issue_count = args.max_issues
     
     if args.crisis_mode:
         monitor.enable_crisis_mode(
-            min_download=max(1.0, args.min_download * 0.5),
-            max_latency=min(500, args.max_latency * 2)
+            min_download=max(1.0, monitor.min_download_speed * 0.5),
+            max_latency=min(500, monitor.max_latency * 2)
         )
     
     try:
