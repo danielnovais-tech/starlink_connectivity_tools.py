@@ -20,7 +20,7 @@ Optimizes power and bandwidth for extended operation during emergencies.
 import sys
 import time
 from pathlib import Path
-
+from starlink_connectivity_tools import StarlinkDish, StarlinkConnectionError
 # Add parent directory to path to import the library
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
