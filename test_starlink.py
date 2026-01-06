@@ -114,7 +114,7 @@ def test_crisis_mode():
     print("\nTesting crisis mode...")
     
     with tempfile.TemporaryDirectory() as tmpdir:
-        result = os.system(f"timeout 15 python starlink_connectivity.py --crisis-mode single-check > /dev/null 2>&1")
+        os.system(f"timeout 15 python starlink_connectivity.py --crisis-mode single-check > /dev/null 2>&1")
         
         # Crisis mode should work even if connection fails
         # Exit code might be 0 or error, but shouldn't crash
