@@ -1,3 +1,4 @@
+"""Setup configuration for starlink_connectivity_tools."""
 """Setup script for starlink-client package."""
 """Setup script for Starlink Connectivity Tools."""
 """Setup script for starlink_connectivity_tools package."""
@@ -28,6 +29,9 @@ Setup script for Starlink Connectivity Tools
 from setuptools import setup, find_packages
 from pathlib import Path
 
+# Read the contents of README file
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text(encoding="utf-8")
 # Read the README file
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
@@ -73,6 +77,7 @@ setup(
     name="starlink_connectivity_tools",
     version="0.1.0",
     author="Daniel Novais",
+    description="Python library for interacting with Starlink user terminals",
     description="Crisis-optimized Starlink connectivity monitoring and management tools",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -96,6 +101,7 @@ setup(
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
+        "Topic :: System :: Networking",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Topic :: System :: Networking",
@@ -142,6 +148,8 @@ setup(
     ],
     python_requires=">=3.7",
     install_requires=[
+        "grpcio>=1.50.0",
+        "grpcio-tools>=1.50.0",
         "requests>=2.25.0",
     ],
     extras_require={
@@ -221,6 +229,11 @@ setup(
         "dev": [
             "pytest>=7.0.0",
             "pytest-cov>=4.0.0",
+            "black>=22.0.0",
+            "flake8>=5.0.0",
+            "mypy>=0.990",
+        ],
+    },
         ],
     },
             "black>=23.0.0",
