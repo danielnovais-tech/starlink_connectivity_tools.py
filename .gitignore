@@ -210,3 +210,7 @@ __marimo__/
 cookies.json
 dir_cookies/
 *.cookie
+# Venezuela scenario generated files
+venezuela_scenario.log
+venezuela_scenario_report.json
+medical_mission_report.json
