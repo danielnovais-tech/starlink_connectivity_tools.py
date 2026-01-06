@@ -1,0 +1,28 @@
+# Docker Compose configuration for Starlink Monitor
+version: '3.9'
+
+services:
+  starlink-monitor:
+    build: .
+    image: starlink-monitor:latest
+    container_name: starlink-monitor
+    environment:
+      - LOG_LEVEL=INFO
+    volumes:
+      # Mount config directory
+      - ./config:/root/.config/starlink_monitor
+      # Mount output directory
+      - ./output:/app/output
+    network_mode: host  # Required to access Starlink router on local network
+    restart: unless-stopped
+    command: monitor --interval 60
+
+  # Example: Run status check
+  status-check:
+    build: .
+    image: starlink-monitor:latest
+    container_name: starlink-status
+    network_mode: host
+    command: status --log-level INFO
+    profiles:
+      - manual  # Only run when explicitly specified
