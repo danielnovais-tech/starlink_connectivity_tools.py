@@ -84,7 +84,7 @@ class StarlinkDish:
             "connected_satellites": random.randint(3, 8),
             "downlink_throughput_bps": random.uniform(50e6, 200e6),
             "uplink_throughput_bps": random.uniform(10e6, 40e6),
-            "pop_ping_latency_ms": random.uniform(20, 60),
+            "pop_ping_latency_ms": random.uniform(20, 120),
             "stowed": self._stowed,
             "heating": random.choice([True, False]),
             "motor_stuck": random.random() < self.MOTOR_STUCK_PROBABILITY,
