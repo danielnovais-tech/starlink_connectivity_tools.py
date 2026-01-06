@@ -1,0 +1,32 @@
+{
+  "thresholds": {
+    "ping_timeout": 5,
+    "max_failures": 3,
+    "min_success_rate": 0.8,
+    "alert_latency_ms": 100
+  },
+  "crisis_thresholds": {
+    "ping_timeout": 10,
+    "max_failures": 5,
+    "min_success_rate": 0.5,
+    "alert_latency_ms": 300
+  },
+  "monitoring": {
+    "check_interval": 60,
+    "history_size": 1000
+  },
+  "logging": {
+    "log_file": "starlink_monitor.log",
+    "log_level": "INFO",
+    "console_output": true
+  },
+  "starlink": {
+    "dish_ip": "192.168.100.1",
+    "router_ip": "192.168.1.1"
+  },
+  "notifications": {
+    "enabled": false,
+    "email": null,
+    "webhook_url": null
+  }
+}
