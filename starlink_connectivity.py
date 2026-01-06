@@ -14,7 +14,6 @@ A comprehensive tool for monitoring Starlink connectivity with features includin
 import argparse
 import json
 import logging
-import os
 import signal
 import subprocess
 import sys
