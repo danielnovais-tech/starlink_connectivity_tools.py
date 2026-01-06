@@ -9,7 +9,7 @@ the actual dish via gRPC at 192.168.100.1:9200.
 import time
 import random
 from typing import Dict, Any, Optional
-from .exceptions import StarlinkConnectionError, StarlinkEmergencyError
+from .exceptions import StarlinkConnectionError
 
 
 class StarlinkDish:
