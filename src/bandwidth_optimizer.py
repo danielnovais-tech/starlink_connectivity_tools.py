@@ -55,7 +55,26 @@ class BandwidthOptimizer:
         logger.info(f"Optimizing for low bandwidth: {target_bandwidth} Mbps")
         # In a real implementation, this would reallocate bandwidth
         self.total_bandwidth = target_bandwidth
-        self.available_bandwidth = min(self.available_bandwidth, target_bandwidth)
+
+        # Ensure available_bandwidth remains consistent with existing allocations
+        allocated_bandwidth = sum(
+            allocation.get("allocated", 0.0)
+            for allocation in self.allocations.values()
+        )
+
+        if allocated_bandwidth >= self.total_bandwidth:
+            # All bandwidth (or more) is already allocated; nothing is available
+            logger.warning(
+                "Allocated bandwidth (%.2f Mbps) exceeds or equals new total bandwidth "
+                "(%.2f Mbps). Setting available_bandwidth to 0.",
+                allocated_bandwidth,
+                self.total_bandwidth,
+            )
+            self.available_bandwidth = 0.0
+        else:
+            # Available bandwidth is whatever remains under the new total, but not negative
+            remaining = self.total_bandwidth - allocated_bandwidth
+            self.available_bandwidth = min(self.available_bandwidth, remaining)
     
     def get_bandwidth_report(self) -> Dict[str, Any]:
         """Get bandwidth allocation report"""
