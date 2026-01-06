@@ -489,7 +489,7 @@ def main():
         
         # Ask if user wants to see the report
         response = input("\nWould you like to view the full report? (yes/no): ").lower()
-        if response == 'yes':
+        if response.startswith('y'):
             import json
             print("\n" + "="*70)
             print("FINAL REPORT")
