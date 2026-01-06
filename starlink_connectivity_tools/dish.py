@@ -80,7 +80,7 @@ class StarlinkDish:
         status = {
             "uptime": random.randint(1000, 100000),
             "obstructed": random.choice([True, False]),
-            "obstruction_percentage": random.uniform(0, 15),
+            "obstruction_percentage": random.uniform(0, 100),
             "connected_satellites": random.randint(3, 8),
             "downlink_throughput_bps": random.uniform(50e6, 200e6),
             "uplink_throughput_bps": random.uniform(10e6, 40e6),
