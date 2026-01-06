@@ -1,137 +1,234 @@
 #!/usr/bin/env python3
 """
-Starlink Monitor CLI Tool
+Starlink Monitor CLI - NEW: Command-line monitoring tool
 
-A command-line interface for monitoring and managing Starlink connectivity.
-This tool provides commands for device management and threshold configuration.
-
-Usage Examples:
-    Reboot the Starlink dish:
-        python tools/starlink_monitor_cli.py reboot
-
-    Manage connectivity thresholds:
-        python tools/starlink_monitor_cli.py thresholds
+Command-line tool for real-time Starlink connection monitoring.
+Provides live metrics, alerts, and diagnostic information.
 """
 
-import argparse
 import sys
+import time
+import argparse
+import logging
+from datetime import datetime
+from pathlib import Path
+
+# Add parent directory to path to import src modules
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from src.starlink_monitor import StarlinkMonitor
+from src.diagnostics import Diagnostics
+from src.config.settings import Settings
+
+logging.basicConfig(
+    level=getattr(logging, Settings.LOG_LEVEL),
+    format=Settings.LOG_FORMAT
+)
+logger = logging.getLogger(__name__)
 
 
-def reboot_command(args):
+def monitor_live(monitor: StarlinkMonitor, interval: int = 5) -> None:
     """
-    Reboot the Starlink dish.
-    
-    This command demonstrates the usage example for rebooting the Starlink dish.
-    In a production environment, this would initiate a reboot of the Starlink dish,
-    which can help resolve connectivity issues or apply configuration changes.
-    
-    Usage Example:
-        python tools/starlink_monitor_cli.py reboot
+    Display live monitoring data.
     
     Args:
-        args: Parsed command-line arguments
+        monitor: StarlinkMonitor instance
+        interval: Update interval in seconds
     """
-    print("Starlink Reboot Command - Usage Example")
-    print("=" * 50)
-    print("\nUsage Example:")
-    print("  python tools/starlink_monitor_cli.py reboot")
-    print("\nIn production, this command would:")
-    print("  - Send a reboot signal to the Starlink dish")
-    print("  - Wait for the dish to restart (2-3 minutes)")
-    print("  - Verify connectivity after reboot")
-    print("  - Return status of the reboot operation")
-    print("\nExpected Output:")
-    print("  ✓ Reboot signal sent to Starlink dish")
-    print("  ⏳ Waiting for dish to restart...")
-    print("  ✓ Dish online - connectivity restored")
-    print("\n✓ Command usage example displayed successfully")
+    print("\n" + "="*60)
+    print("Starlink Live Monitor")
+    print("="*60)
+    print("Press Ctrl+C to stop\n")
+    
+    try:
+        while True:
+            metrics = monitor.get_current_metrics()
+            alerts = monitor.check_alerts()
+            
+            # Clear screen (works on most terminals)
+            print("\033[2J\033[H", end="")
+            
+            # Display header
+            print("="*60)
+            print(f"Starlink Monitor - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            print("="*60)
+            
+            # Display metrics
+            print(f"\n📡 Signal Quality: {metrics['signal_quality']}%")
+            print(f"🛰️  Satellites: {metrics['satellites_visible']}")
+            print(f"⏱️  Latency: {metrics['latency_ms']:.1f} ms")
+            print(f"⬇️  Download: {metrics['download_mbps']:.1f} Mbps")
+            print(f"⬆️  Upload: {metrics['upload_mbps']:.1f} Mbps")
+            print(f"📊 Packet Loss: {metrics['packet_loss_percent']:.2f}%")
+            print(f"🚫 Obstruction: {metrics['obstruction_percent']:.2f}%")
+            print(f"🌡️  Temperature: {metrics['dish_temperature_c']:.1f}°C")
+            print(f"⏰ Uptime: {metrics['uptime_seconds'] / 3600:.1f} hours")
+            
+            # Display alerts
+            if alerts:
+                print("\n⚠️  ALERTS:")
+                for alert in alerts:
+                    severity_icon = "🔴" if alert["severity"] == "critical" else "🟡"
+                    print(f"  {severity_icon} {alert['message']}")
+            else:
+                print("\n✅ No alerts - All systems normal")
+            
+            print("\n" + "="*60)
+            print(f"Next update in {interval} seconds...")
+            
+            time.sleep(interval)
+            
+    except KeyboardInterrupt:
+        print("\n\nMonitoring stopped.")
 
 
-def thresholds_command(args):
+def show_statistics(monitor: StarlinkMonitor, duration: int = 60) -> None:
     """
-    Display and manage connectivity thresholds.
-    
-    This command demonstrates the usage example for displaying and managing
-    connectivity thresholds. In a production environment, this would show the
-    current connectivity thresholds and allow configuration of alert levels
-    for various metrics.
-    
-    Usage Example:
-        python tools/starlink_monitor_cli.py thresholds
+    Display statistics summary.
     
     Args:
-        args: Parsed command-line arguments
+        monitor: StarlinkMonitor instance
+        duration: Duration in minutes
     """
-    print("Starlink Connectivity Thresholds - Usage Example")
-    print("=" * 50)
-    print("\nUsage Example:")
-    print("  python tools/starlink_monitor_cli.py thresholds")
-    print("\nIn production, this would display current threshold configuration:")
-    print("\nExample Threshold Values:")
-    print("  - Latency threshold: 50ms (warn), 100ms (critical)")
-    print("  - Packet loss threshold: 1% (warn), 5% (critical)")
-    print("  - Downtime threshold: 30s (warn), 60s (critical)")
-    print("  - Signal strength threshold: -90dBm (warn), -95dBm (critical)")
-    print("\nExample Threshold Monitoring Features:")
-    print("  - Alerts triggered when metrics exceed thresholds")
-    print("  - Notifications via email or webhook")
-    print("  - Historical threshold violations logged")
-    print("  - Customizable threshold values per metric")
-    print("\n✓ Command usage example displayed successfully")
+    print("\n" + "="*60)
+    print(f"Statistics (Last {duration} minutes)")
+    print("="*60)
+    
+    stats = monitor.get_statistics(duration)
+    
+    if "error" in stats:
+        print(f"\n{stats['error']}")
+        return
+    
+    print(f"\nSamples: {stats['sample_count']}")
+    
+    print("\nLatency (ms):")
+    print(f"  Average: {stats['latency']['avg']:.1f}")
+    print(f"  Min: {stats['latency']['min']:.1f}")
+    print(f"  Max: {stats['latency']['max']:.1f}")
+    
+    print("\nDownload Speed (Mbps):")
+    print(f"  Average: {stats['download']['avg']:.1f}")
+    print(f"  Min: {stats['download']['min']:.1f}")
+    print(f"  Max: {stats['download']['max']:.1f}")
+    
+    print("\nUpload Speed (Mbps):")
+    print(f"  Average: {stats['upload']['avg']:.1f}")
+    print(f"  Min: {stats['upload']['min']:.1f}")
+    print(f"  Max: {stats['upload']['max']:.1f}")
+    
+    print("\nSignal Quality (%):")
+    print(f"  Average: {stats['signal_quality']['avg']:.1f}")
+    print(f"  Min: {stats['signal_quality']['min']:.1f}")
+    print(f"  Max: {stats['signal_quality']['max']:.1f}")
+    
+    print("\n" + "="*60)
+
+
+def run_diagnostics(diagnostics: Diagnostics) -> None:
+    """
+    Run and display diagnostics.
+    
+    Args:
+        diagnostics: Diagnostics instance
+    """
+    print("\n" + "="*60)
+    print("Running Diagnostics...")
+    print("="*60)
+    
+    report = diagnostics.get_diagnostic_report()
+    print(report)
+    
+    steps = diagnostics.get_troubleshooting_steps()
+    if steps:
+        print("\n📋 Recommended Actions:")
+        for i, step in enumerate(steps, 1):
+            print(f"  {i}. {step}")
 
 
 def main():
-    """
-    Main entry point for the Starlink Monitor CLI.
-    
-    Parses command-line arguments and dispatches to the appropriate command handler.
-    """
+    """Main entry point."""
     parser = argparse.ArgumentParser(
-        description="Starlink Monitor CLI - Manage and monitor Starlink connectivity",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Usage Examples:
-  python tools/starlink_monitor_cli.py reboot
-  python tools/starlink_monitor_cli.py thresholds
-
-For more information on a specific command, use:
-  python tools/starlink_monitor_cli.py <command> --help
-        """
+        description="Starlink Monitor CLI - Real-time monitoring tool"
     )
     
-    subparsers = parser.add_subparsers(
-        dest='command',
-        help='Available commands',
-        required=True
+    parser.add_argument(
+        "command",
+        choices=["monitor", "stats", "diagnostics", "export"],
+        help="Command to execute"
     )
     
-    # Reboot command
-    reboot_parser = subparsers.add_parser(
-        'reboot',
-        help='Reboot the Starlink dish',
-        description='Initiates a reboot of the Starlink dish'
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=5,
+        help="Monitoring interval in seconds (default: 5)"
     )
-    reboot_parser.set_defaults(func=reboot_command)
     
-    # Thresholds command
-    thresholds_parser = subparsers.add_parser(
-        'thresholds',
-        help='Display and manage connectivity thresholds',
-        description='Show current connectivity thresholds and configuration'
+    parser.add_argument(
+        "--duration",
+        type=int,
+        default=60,
+        help="Duration for statistics in minutes (default: 60)"
     )
-    thresholds_parser.set_defaults(func=thresholds_command)
     
-    # Parse arguments
+    parser.add_argument(
+        "--format",
+        choices=["json", "csv"],
+        default="json",
+        help="Export format (default: json)"
+    )
+    
+    parser.add_argument(
+        "--output",
+        type=str,
+        help="Output file for export"
+    )
+    
+    parser.add_argument(
+        "--endpoint",
+        type=str,
+        default=Settings.STARLINK_ENDPOINT,
+        help=f"Starlink endpoint (default: {Settings.STARLINK_ENDPOINT})"
+    )
+    
     args = parser.parse_args()
     
-    # Execute the appropriate command
-    try:
-        args.func(args)
-        return 0
-    except Exception as e:
-        print(f"Error executing command: {e}", file=sys.stderr)
-        return 1
+    # Initialize components
+    monitor = StarlinkMonitor(starlink_endpoint=args.endpoint)
+    diagnostics = Diagnostics(starlink_endpoint=args.endpoint)
+    
+    # Execute command
+    if args.command == "monitor":
+        monitor_live(monitor, args.interval)
+    
+    elif args.command == "stats":
+        # Collect some samples first
+        print("Collecting metrics...")
+        for _ in range(5):
+            monitor.get_current_metrics()
+            time.sleep(1)
+        show_statistics(monitor, args.duration)
+    
+    elif args.command == "diagnostics":
+        run_diagnostics(diagnostics)
+    
+    elif args.command == "export":
+        # Collect samples
+        print("Collecting metrics for export...")
+        for _ in range(10):
+            monitor.get_current_metrics()
+            time.sleep(1)
+        
+        data = monitor.export_metrics(args.format)
+        
+        if args.output:
+            with open(args.output, 'w') as f:
+                f.write(data)
+            print(f"Metrics exported to {args.output}")
+        else:
+            print(data)
 
 
-if __name__ == '__main__':
-    sys.exit(main())
+if __name__ == "__main__":
+    main()
