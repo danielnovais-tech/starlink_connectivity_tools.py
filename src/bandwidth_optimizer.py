@@ -4,7 +4,7 @@ Manages bandwidth allocation and traffic prioritization
 """
 
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from enum import Enum
 
 logger = logging.getLogger(__name__)
