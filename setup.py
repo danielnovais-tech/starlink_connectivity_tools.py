@@ -1,3 +1,4 @@
+"""Setup script for starlink-client package."""
 """Setup script for Starlink Connectivity Tools."""
 """Setup script for starlink_connectivity_tools package."""
 
@@ -6,6 +7,12 @@ from setuptools import setup, find_packages
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
+setup(
+    name="starlink-client",
+    version="0.1.0",
+    author="Starlink Connectivity Tools",
+    author_email="info@example.com",
+    description="A Python library for interacting with Starlink satellite internet devices",
 with open("requirements.txt", "r", encoding="utf-8") as fh:
     requirements = [line.strip() for line in fh if line.strip() and not line.startswith("#")]
 
@@ -126,6 +133,11 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: System :: Networking",
+    ],
+    python_requires=">=3.7",
+    install_requires=[],
     ],
     python_requires=">=3.7",
     install_requires=[
@@ -137,6 +149,9 @@ setup(
             "pytest-cov>=3.0",
             "black>=22.0",
             "flake8>=4.0",
+            "mypy>=0.950",
+        ],
+    },
         ],
     },
     python_requires=">=3.8",
