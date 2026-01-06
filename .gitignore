@@ -206,9 +206,7 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-# Starlink Connectivity Tools
-starlink_monitor.log
-*.json
-!starlink_config.example.json
-!requirements.txt
-my_config.json
+# Venezuela scenario generated files
+venezuela_scenario.log
+venezuela_scenario_report.json
+medical_mission_report.json
