@@ -148,7 +148,10 @@ class StarlinkMonitor:
             # Use ping command (cross-platform)
             ping_cmd = ['ping', '-c', '4', '-W', str(timeout), dish_ip]
             if sys.platform == 'win32':
-                ping_cmd = ['ping', '-n', '4', '-w', str(timeout * 1000), dish_ip]
+                # Windows ping expects an integer timeout in milliseconds.
+                # Fractional-second timeouts will be rounded to the nearest millisecond.
+                windows_timeout_ms = int(round(timeout * 1000))
+                ping_cmd = ['ping', '-n', '4', '-w', str(windows_timeout_ms), dish_ip]
             
             process = subprocess.run(
                 ping_cmd,
