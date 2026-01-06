@@ -36,12 +36,18 @@ class SatelliteConnectionManager:
         logger.info("Scanning for available connections...")
         
         if self.enable_starlink:
-            self.available_connections.append({
-                'connection_id': 'starlink_satellite',
-                'type': 'starlink',
-                'status': 'available',
-                'host': self.starlink_host
-            })
+            # Avoid adding duplicate Starlink connection entries if scan is called multiple times
+            already_present = any(
+                conn.get('connection_id') == 'starlink_satellite'
+                for conn in self.available_connections
+            )
+            if not already_present:
+                self.available_connections.append({
+                    'connection_id': 'starlink_satellite',
+                    'type': 'starlink',
+                    'status': 'available',
+                    'host': self.starlink_host
+                })
         
         logger.info(f"Found {len(self.available_connections)} available connections")
         return self.available_connections
