@@ -63,8 +63,17 @@ def export_data(output_file):
             json.dump(data, f, indent=2)
         print(f"Data successfully exported to {output_file}")
         return 0
-    except Exception as e:
-        print(f"Error exporting data: {e}", file=sys.stderr)
+    except PermissionError as e:
+        print(f"Error exporting data (permission denied): {e}", file=sys.stderr)
+        return 1
+    except FileNotFoundError as e:
+        print(f"Error exporting data (path not found): {e}", file=sys.stderr)
+        return 1
+    except IsADirectoryError as e:
+        print(f"Error exporting data (output path is a directory): {e}", file=sys.stderr)
+        return 1
+    except OSError as e:
+        print(f"Error exporting data (OS error): {e}", file=sys.stderr)
         return 1
 
 
