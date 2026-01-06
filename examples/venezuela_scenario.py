@@ -11,13 +11,13 @@ import time
 import json
 import logging
 import random
-from datetime import datetime, timedelta
+from datetime import datetime
 
 # Add parent directory to path to allow imports when running directly
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.connection_manager import SatelliteConnectionManager
-from src.bandwidth_optimizer import BandwidthOptimizer
+from src.bandwidth_optimizer import BandwidthOptimizer, TrafficPriority
 from src.power_manager import PowerManager, PowerMode
 from src.failover_handler import FailoverHandler
 from src.starlink_monitor import StarlinkMonitor
@@ -174,8 +174,8 @@ class VenezuelaCrisisScenario:
         # Reduce power consumption
         self.power_manager.set_power_mode(PowerMode.SURVIVAL)
         self.power_manager.schedule_sleep_cycle(
-            active_duration=300,    # 5 minutes active
-            sleep_duration=1800     # 30 minutes sleep
+            active_duration_seconds=300,    # 5 minutes active
+            sleep_duration_seconds=1800     # 30 minutes sleep
         )
         
         # Prioritize critical communications only
@@ -276,7 +276,8 @@ class VenezuelaCrisisScenario:
             'medical_data_sent': 0,  # MB
             'supply_requests': 0,
             'connectivity_issues': 0,
-            'status_updates': []
+            'status_updates': [],
+            'duration_hours': duration_hours
         }
         
         # Setup for medical mission
@@ -497,7 +498,6 @@ def main():
         # Ask if user wants to see the report
         response = input("\nWould you like to view the full report? (yes/no): ").lower()
         if response.startswith('y'):
-            import json
             print("\n" + "="*70)
             print("FINAL REPORT")
             print("="*70)

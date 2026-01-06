@@ -29,7 +29,7 @@ The Venezuela Crisis Scenario simulates humanitarian operations using Starlink c
 ### Run the Full Demonstration
 
 ```bash
-cd /path/to/starlink_connectivity_tools.py
+cd /path/to/project
 python3 examples/venezuela_scenario.py
 ```
 

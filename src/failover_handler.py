@@ -4,6 +4,7 @@ Manages failover between different connection types
 """
 
 import logging
+import time
 from typing import Dict, Any, List
 
 logger = logging.getLogger(__name__)
@@ -38,7 +39,7 @@ class FailoverHandler:
             self.failover_history.append({
                 'reason': reason,
                 'backup_used': self.active_backup['connection_id'],
-                'timestamp': 'now'
+                'timestamp': time.time()
             })
             
             logger.info(f"Failover to {self.active_backup['connection_id']} successful")

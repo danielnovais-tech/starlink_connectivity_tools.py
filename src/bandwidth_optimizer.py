@@ -35,13 +35,14 @@ class BandwidthOptimizer:
         logger.warning("Bandwidth optimizer crisis mode enabled")
     
     def allocate_bandwidth(self, connection_id: str, destination: str, 
-                          requested_bandwidth: float) -> bool:
+                          requested_bandwidth: float,
+                          priority: TrafficPriority = TrafficPriority.MEDIUM) -> bool:
         """Allocate bandwidth for a specific connection"""
         if requested_bandwidth <= self.available_bandwidth:
             self.allocations[connection_id] = {
                 'destination': destination,
                 'allocated': requested_bandwidth,
-                'priority': TrafficPriority.MEDIUM
+                'priority': priority
             }
             self.available_bandwidth -= requested_bandwidth
             logger.info(f"Allocated {requested_bandwidth} Mbps to {connection_id}")
