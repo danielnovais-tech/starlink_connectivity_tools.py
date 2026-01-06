@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.connection_manager import SatelliteConnectionManager
-from src.bandwidth_optimizer import BandwidthOptimizer, TrafficPriority
+from src.bandwidth_optimizer import BandwidthOptimizer
 from src.power_manager import PowerManager, PowerMode
 from src.failover_handler import FailoverHandler
 from src.starlink_monitor import StarlinkMonitor
