@@ -292,7 +292,11 @@ class VenezuelaCrisisScenario:
         
         if not connected:
             logger.error("Failed to connect. Attempting failover...")
-            self.failover_handler.initiate_failover("Medical mission connectivity failed")
+            failover_success = self.failover_handler.initiate_failover("Medical mission connectivity failed")
+            if not failover_success:
+                logger.critical("Primary connection and failover both failed. Aborting medical mission due to lack of connectivity.")
+                mission_data['connectivity_issues'] += 1
+                return mission_data
         
         # Run mission
         while time.time() < end_time:
