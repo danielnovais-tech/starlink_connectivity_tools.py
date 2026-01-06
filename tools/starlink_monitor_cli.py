@@ -17,9 +17,17 @@ def generate_report(hours):
     
     Args:
         hours (int): Number of hours to include in the report
+    
+    Returns:
+        int: 0 for success, 1 for error
     """
     if hours <= 0:
         print("Error: --hours must be a positive number", file=sys.stderr)
+        return 1
+    
+    # Limit to 8760 hours (1 year) to prevent unreasonable time ranges
+    if hours > 8760:
+        print("Error: --hours cannot exceed 8760 (1 year)", file=sys.stderr)
         return 1
     
     now = datetime.now()
@@ -43,6 +51,9 @@ def export_data(output_file):
     
     Args:
         output_file (str): Path to the output JSON file
+    
+    Returns:
+        int: 0 for success, 1 for error
     """
     print(f"Exporting data to {output_file}...")
     
