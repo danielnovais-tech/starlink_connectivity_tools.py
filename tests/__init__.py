@@ -1,3 +1,6 @@
+"""
+Tests for Starlink Connectivity Tools
+"""
 """Empty __init__.py for tests package."""
 """
 Tests for the starlink_connectivity_tools package.

@@ -1,3 +1,4 @@
+requests>=2.25.0
 # No external dependencies required for the simulated implementation
 # In production, you would need:
 # grpcio>=1.50.0

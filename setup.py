@@ -8,6 +8,10 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
+    name="starlink-connectivity-tools",
+    version="0.1.0",
+    author="Daniel Novais",
+    description="Python library for interacting with Starlink API",
     name="starlink-client",
     version="0.1.0",
     author="Starlink Connectivity Tools",
@@ -92,6 +96,8 @@ setup(
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
         "Topic :: System :: Networking",
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python :: 3",
@@ -133,6 +139,19 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+    ],
+    python_requires=">=3.7",
+    install_requires=[
+        "requests>=2.25.0",
+    ],
+    extras_require={
+        "dev": [
+            "pytest>=6.0",
+            "pytest-cov>=2.0",
+            "black>=21.0",
+            "flake8>=3.9",
+        ],
+    },
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: System :: Networking",
     ],
