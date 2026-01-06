@@ -388,10 +388,13 @@ class VenezuelaCrisisScenario:
         logger.info(f"Supply Requests: {mission_data['supply_requests']}")
         logger.info(f"Connectivity Issues: {mission_data['connectivity_issues']}")
         
+        # Determine mission duration (fallback to 6 hours for backward compatibility)
+        duration_hours = mission_data.get('duration_hours', 6)
+
         # Send final report
         final_report = {
             'mission_type': 'medical_aid',
-            'duration_hours': 6,
+            'duration_hours': duration_hours,
             'summary': mission_data,
             'connectivity_quality': self.connection_manager.get_connection_report(),
             'timestamp': datetime.now().isoformat()
