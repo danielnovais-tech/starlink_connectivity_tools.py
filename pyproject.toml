@@ -1,4 +1,5 @@
 [build-system]
+requires = ["setuptools>=61.0", "wheel"]
 requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
@@ -20,6 +21,56 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Astronomy",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "License :: OSI Approved :: Apache Software License",
+name = "starlink-client"
+version = "0.1.0"
+description = "A Python library for interacting with Starlink satellite internet devices"
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "starlink-connectivity-tools"
+version = "0.1.0"
+description = "Python library for interacting with Starlink user terminals"
+description = "Python tools for interacting with Starlink dish gRPC API"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Daniel Novais Tech"}
+]
+keywords = ["starlink", "satellite", "connectivity", "grpc", "api"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    {name = "Daniel Novais"}
+]
+keywords = ["starlink", "grpc", "satellite", "connectivity"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+description = "Tools for monitoring and managing Starlink satellite connectivity"
+readme = "README.md"
+requires-python = ">=3.7"
+license = {text = "MIT"}
+authors = [
+    {name = "Starlink Connectivity Tools", email = "info@example.com"}
+]
+keywords = ["starlink", "satellite", "internet", "networking"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    {name = "Daniel Azevedo Novais", email = "daniel.novais@sempreceub.com"}
+]
+keywords = ["starlink", "satellite", "connectivity", "monitoring", "cli"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
@@ -31,6 +82,15 @@ classifiers = [
 
 dependencies = [
     "requests>=2.25.0",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Networking",
+]
+
+dependencies = [
+    "grpcio>=1.50.0",
+    "grpcio-tools>=1.50.0",
+    "grpcio-reflection>=1.50.0",
+    "protobuf>=4.21.0",
 ]
 
 [project.optional-dependencies]
@@ -53,3 +113,94 @@ packages = ["starlink_connectivity_tools"]
 
 [tool.setuptools.package-data]
 starlink_connectivity_tools = ["*.md"]
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "mypy>=1.0.0",
+    "ruff>=0.1.0",
+]
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.20.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+]
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Networking",
+]
+
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=3.0",
+    "black>=22.0",
+    "flake8>=4.0",
+    "mypy>=0.950",
+]
+    "Topic :: System :: Monitoring",
+    "Topic :: System :: Networking :: Monitoring",
+]
+
+[project.scripts]
+starlink-cli = "cli.starlink_cli:main"
+
+[project.urls]
+Homepage = "https://github.com/danielnovais-tech/starlink_connectivity_tools.py"
+Repository = "https://github.com/danielnovais-tech/starlink_connectivity_tools.py"
+Issues = "https://github.com/danielnovais-tech/starlink_connectivity_tools.py/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["starlink_connectivity_tools*"]
+
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+target-version = ['py38']
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+[tool.setuptools]
+packages = ["starlink_client"]
+Documentation = "https://github.com/danielnovais-tech/starlink_connectivity_tools.py#readme"
+"Bug Tracker" = "https://github.com/danielnovais-tech/starlink_connectivity_tools.py/issues"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=22.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py37', 'py38', 'py39', 'py310', 'py311']
+
+[tool.mypy]
+python_version = "3.7"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "-v --strict-markers"
