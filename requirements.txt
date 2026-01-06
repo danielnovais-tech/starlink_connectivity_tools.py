@@ -1,3 +1,7 @@
+# No external dependencies required for the simulated implementation
+# In production, you would need:
+# grpcio>=1.50.0
+# grpcio-tools>=1.50.0
 # Starlink dependencies (optional - install manually from https://github.com/sparky8512/starlink-grpc-tools)
 # starlink-grpc>=1.2.0
 grpcio>=1.50.0
