@@ -1,0 +1,10 @@
+[
+  {
+    "name": "your_cookie_name",
+    "value": "your_cookie_value",
+    "domain": ".starlink.com",
+    "path": "/",
+    "secure": true,
+    "httpOnly": false
+  }
+]
