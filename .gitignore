@@ -212,3 +212,11 @@ starlink_logs_*.json
 starlink_report_*.json
 starlink_final_*.json
 starlink_logs_export.json
+# Starlink-specific sensitive files
+cookies.json
+dir_cookies/
+*.cookie
+# Venezuela scenario generated files
+venezuela_scenario.log
+venezuela_scenario_report.json
+medical_mission_report.json
