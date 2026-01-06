@@ -1,5 +1,1523 @@
 # starlink_connectivity_tools.py
 
+A Python toolkit for monitoring and analyzing Starlink connectivity performance.
+
+## Features
+
+- Performance reporting over customizable time periods
+- Data export to JSON format
+- Command-line interface for easy access
+
+## Installation
+
+Clone the repository:
+
+# Starlink Connectivity Tools
+
+Python tools for remotely accessing and monitoring Starlink devices using cookie-based authentication.
+
+## Overview
+
+This repository provides example scripts for interacting with Starlink devices remotely. The main script demonstrates how to:
+- Authenticate using cookies
+- Retrieve account information
+- List service lines and dishes
+- Get dish status and alerts
+- View router/WiFi information
+- List connected clients
+
+## Installation
+
+1. Clone this repository:
+```bash
+git clone https://github.com/danielnovais-tech/starlink_connectivity_tools.py.git
+cd starlink_connectivity_tools.py
+```
+
+2. Install required dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+## Setup
+
+1. Create a `cookies.json` file with your Starlink authentication cookies:
+   - Copy `cookies.json.example` to `cookies.json`
+   - Update it with your actual authentication cookies from your browser
+   - You can export cookies from your browser using browser developer tools or a cookie export extension
+
+2. Example `cookies.json` structure:
+```json
+[
+  {
+    "name": "cookie_name",
+    "value": "cookie_value",
+    "domain": ".starlink.com",
+    "path": "/",
+    "secure": true,
+    "httpOnly": false
+  }
+]
+```
+
+## Usage
+
+Run the remote access example script:
+```bash
+python remote_access_example.py
+```
+
+The script will:
+1. Read authentication cookies from `cookies.json`
+2. Connect to your Starlink account
+3. Retrieve and display information about:
+   - Dishes (ID, serial number, status, alerts)
+   - Routers (ID, software version)
+   - WiFi networks (2.4GHz and 5GHz SSIDs)
+   - Connected clients
+
+## Output Example
+
+```
+-------------------------
+DISH_ID: dish_12345
+Dish Serial: UT12345678901234
+Dish Status:
+    alert1: value1
+    alert2: value2
+
+Router ID: router_12345
+Software Version: 2024.01.01.mr12345
+Networks: 
+    2.4ghz: MyStarlink
+    5ghz: MyStarlink_5G
+Clients:
+    Device1|192.168.1.100
+    Device2|192.168.1.101
+```
+
+## Security Notes
+
+- **Never commit `cookies.json` to version control** - it contains sensitive authentication information
+- The `cookies.json` file is already included in `.gitignore`
+- Cookie files stored in `dir_cookies` are also excluded from version control
+- Keep your authentication cookies secure and rotate them regularly
+A Python library for interacting with Starlink user terminals via gRPC. This library provides convenient wrappers for common Starlink methods to manage and monitor your Starlink dish.
+
+## Features
+
+This library provides methods for:
+
+- **Get Status/History**: Retrieve current status (connectivity, alerts) and historical data
+- **Get Network Stats**: Download/upload speeds, latency, packet loss
+- **Get Telemetry**: Device alerts, errors, warnings (streaming supported)
+- **Reboot Dish**: Restart the user terminal
+- **Set Dish Config**: Enable/disable features like snow melt mode, power saving
+- **Get Device Location**: Precise location (local) or H3 cell (remote)
+- **Get WiFi Status**: SSID, connected clients
+- **Change WiFi Config**: Modify SSID, passwords, enable bypass mode
+- **Get Account Data**: Basic account info (remote only)
+
+## Installation
+
+### From source
+
+```bash
+git clone https://github.com/danielnovais-tech/starlink_connectivity_tools.py.git
+cd starlink_connectivity_tools.py
+pip install -e .
+```
+
+### Using pip (when published to PyPI)
+
+```bash
+pip install starlink_connectivity_tools
+```
+
+## Requirements
+
+- Python 3.7 or higher
+- grpcio >= 1.50.0
+- grpcio-tools >= 1.50.0
+
+## Quick Start
+
+### Basic Usage
+
+```python
+from starlink_connectivity_tools import StarlinkClient
+
+# Connect to local Starlink dish (default: 192.168.100.1:9200)
+client = StarlinkClient()
+
+# Get current status
+status = client.get_status()
+print(f"Connected: {status['is_connected']}")
+print(f"State: {status['state']}")
+print(f"Uptime: {status['uptime']} seconds")
+
+# Get network statistics
+stats = client.get_network_stats()
+print(f"Download: {stats['download_speed_mbps']} Mbps")
+print(f"Upload: {stats['upload_speed_mbps']} Mbps")
+print(f"Latency: {stats['latency_ms']} ms")
+print(f"Packet Loss: {stats['packet_loss_percent']}%")
+
+# Get WiFi status
+wifi = client.get_wifi_status()
+print(f"SSID: {wifi['ssid']}")
+print(f"Connected Clients: {len(wifi['connected_clients'])}")
+```
+
+### Using Context Manager
+
+```python
+from starlink_connectivity_tools import StarlinkClient
+
+# Automatically handle connection and disconnection
+with StarlinkClient() as client:
+    status = client.get_status()
+    print(status)
+```
+
+### Remote Connection (with authentication)
+
+```python
+from starlink_connectivity_tools import StarlinkClient
+
+# Connect remotely with authentication token
+client = StarlinkClient(
+    target="remote.starlink.com:9200",
+    auth_token="your-auth-token"
+)
+
+# Get account data (requires authentication)
+account = client.get_account_data()
+print(f"Email: {account['email']}")
+print(f"Service Plan: {account['service_plan']}")
+```
+
+### Explicit Secure/Insecure Connection
+
+```python
+from starlink_connectivity_tools import StarlinkClient
+
+# Force secure channel for local connection (optional)
+secure_client = StarlinkClient(
+    target="192.168.100.1:9200",
+    secure=True
+)
+
+# Force insecure channel for testing (not recommended for production)
+insecure_client = StarlinkClient(
+    target="remote.starlink.com:9200",
+    secure=False  # Only for testing/development
+)
+```
+
+**Note:** The library automatically detects private IP addresses (RFC 1918: 10.x.x.x, 172.16.x.x-172.31.x.x, 192.168.x.x) and uses insecure channels for them. For all other addresses or when an auth_token is provided, it uses secure SSL/TLS channels.
+
+## Available Methods
+
+### get_status()
+
+Retrieve current status of the Starlink dish.
+
+```python
+status = client.get_status()
+# Returns:
+# {
+#     "uptime": 123456,
+#     "state": "CONNECTED",
+#     "alerts": [],
+#     "is_connected": true,
+#     "software_version": "1.2.3"
+# }
+```
+
+### get_history(samples=300)
+
+Retrieve historical data from the Starlink dish.
+
+```python
+history = client.get_history(samples=100)
+# Returns:
+# {
+#     "timestamps": [...],
+#     "download_throughput": [...],
+#     "upload_throughput": [...],
+#     "latency": [...],
+#     "packet_loss": [...],
+#     "obstructed": [...]
+# }
+```
+
+### get_network_stats()
+
+Get current network statistics.
+
+```python
+stats = client.get_network_stats()
+# Returns:
+# {
+#     "download_speed_mbps": 150.5,
+#     "upload_speed_mbps": 25.3,
+#     "latency_ms": 35.2,
+#     "packet_loss_percent": 0.1,
+#     "uptime_seconds": 123456
+# }
+```
+
+### get_telemetry(streaming=False)
+
+Retrieve device telemetry including alerts, errors, and warnings.
+
+```python
+telemetry = client.get_telemetry()
+# Returns:
+# {
+#     "alerts": [...],
+#     "errors": [...],
+#     "warnings": [...],
+#     "temperature_celsius": 45.2,
+#     "power_usage_watts": 65.5
+# }
+```
+
+### reboot_dish()
+
+Restart the Starlink user terminal.
+
+```python
+result = client.reboot_dish()
+# Returns:
+# {
+#     "success": true,
+#     "message": "Reboot command sent"
+# }
+```
+
+### set_dish_config(snow_melt_mode=None, power_save_mode=None, **kwargs)
+
+Configure Starlink dish settings.
+
+```python
+result = client.set_dish_config(
+    snow_melt_mode=True,
+    power_save_mode=False
+)
+# Returns:
+# {
+#     "success": true,
+#     "message": "Configuration updated",
+#     "updated_config": {...}
+# }
+```
+
+### get_device_location(remote=False)
+
+Get the device location.
+
+```python
+# Get precise GPS location (local)
+location = client.get_device_location(remote=False)
+# Returns:
+# {
+#     "latitude": 47.6062,
+#     "longitude": -122.3321,
+#     "altitude": 50.0
+# }
+
+# Get H3 cell location (remote)
+location = client.get_device_location(remote=True)
+# Returns:
+# {
+#     "h3_cell": "8a2a1072b59ffff"
+# }
+```
+
+### get_wifi_status()
+
+Get WiFi status and connected clients.
+
+```python
+wifi = client.get_wifi_status()
+# Returns:
+# {
+#     "ssid": "STARLINKXXX",
+#     "enabled": true,
+#     "channel": 36,
+#     "connected_clients": [...],
+#     "signal_strength": -45
+# }
+```
+
+### change_wifi_config(ssid=None, password=None, bypass_mode=None, **kwargs)
+
+Modify WiFi configuration.
+
+```python
+result = client.change_wifi_config(
+    ssid="MyNewSSID",
+    password="newsecurepassword123",
+    bypass_mode=False
+)
+# Returns:
+# {
+#     "success": true,
+#     "message": "WiFi configuration updated",
+#     "updated_config": {...}
+# }
+```
+
+### get_account_data()
+
+Get basic account information (remote only, requires authentication).
+
+```python
+account = client.get_account_data()
+# Returns:
+# {
+#     "email": "user@example.com",
+#     "name": "John Doe",
+#     "service_plan": "Residential",
+#     "account_number": "ABC123456"
+# }
+```
+
+## Connection Types
+
+### Local Connection
+
+The default connection is to the local Starlink dish at `192.168.100.1:9200`. This requires you to be on the same network as your Starlink router. Local connections automatically use insecure gRPC channels.
+
+```python
+client = StarlinkClient()  # Uses default local address with insecure channel
+```
+
+The library automatically detects RFC 1918 private IP addresses and uses insecure channels for them:
+- 10.0.0.0/8 (10.x.x.x)
+- 172.16.0.0/12 (172.16.x.x - 172.31.x.x)
+- 192.168.0.0/16 (192.168.x.x)
+
+### Remote Connection
+
+For remote connections, you need an authentication token. Remote connections automatically use secure SSL/TLS channels:
+
+```python
+client = StarlinkClient(
+    target="remote.starlink.com:9200",
+    auth_token="your-auth-token"
+)
+```
+
+### Manual Channel Control
+
+You can override automatic detection with the `secure` parameter:
+
+```python
+# Force secure channel even for local IP
+client = StarlinkClient(target="192.168.100.1:9200", secure=True)
+
+# Force insecure channel (not recommended except for testing)
+client = StarlinkClient(target="test.local:9200", secure=False)
+```
+
+## Error Handling
+
+The library raises `grpc.RpcError` exceptions when gRPC calls fail:
+
+```python
+from starlink_connectivity_tools import StarlinkClient
+import grpc
+
+client = StarlinkClient()
+
+try:
+    status = client.get_status()
+except grpc.RpcError as e:
+    print(f"gRPC error: {e.code()} - {e.details()}")
+except PermissionError as e:
+    print(f"Permission error: {e}")
+```
+
+## Development
+
+### Setting up development environment
+
+```bash
+# Clone the repository
+git clone https://github.com/danielnovais-tech/starlink_connectivity_tools.py.git
+cd starlink_connectivity_tools.py
+
+# Install in development mode with dev dependencies
+pip install -e ".[dev]"
+```
+
+### Running tests
+
+```bash
+pytest tests/
+```
+
+### Code formatting
+
+```bash
+black starlink_connectivity_tools/
+```
+
+### Type checking
+
+```bash
+mypy starlink_connectivity_tools/
+```
+
+## Related Projects
+
+This library is inspired by and compatible with:
+
+- [starlink-client](https://github.com/Eitol/starlink-client) - Multi-language support (Python, Go, JS)
+- [starlink-grpc-tools](https://github.com/sparky8512/starlink-grpc-tools) - Scripts and tools for Starlink gRPC interaction
+
+## Notes
+
+- The Starlink gRPC API is **unofficial and undocumented**
+- This library uses reverse-engineered proto files
+- API may change without notice as SpaceX updates the firmware
+- Local connections do not require authentication
+- Remote connections require valid authentication tokens
+
+## License
+
+MIT License - see [LICENSE](LICENSE) file for details
+Python tools for interacting with Starlink Enterprises API via gRPC. This library provides a simple interface to monitor and manage Starlink router and dish devices.
+
+## Features
+
+- 📡 Get device status and diagnostics
+- 🛰️ Monitor ping metrics and network performance
+- 🚀 Run speed tests
+- 🔧 Retrieve device information
+- 🔄 Reboot devices remotely
+- 📊 Support for both router and dish devices
+
+## Requirements
+
+- Python 3.7+
+- starlink-client library
+- protobuf
+- grpcio
+
+## License
+
+See LICENSE file for details.
+- gRPC
+- Protocol Buffers
+- Access to Starlink devices on your network
+
+## Installation
+
+1. Clone this repository:
+```bash
+git clone https://github.com/danielnovais-tech/starlink_connectivity_tools.py.git
+cd starlink_connectivity_tools.py
+```
+
+## Usage
+
+### Performance Reports
+
+Generate a performance report for a specific time period:
+
+```bash
+python tools/starlink_monitor_cli.py report --hours 48
+```
+
+This command generates a performance report for the last 48 hours, showing metrics such as:
+- Average latency
+- Average download speed
+- Average upload speed
+- Uptime statistics
+
+### Data Export
+
+Export collected data to a JSON file:
+
+```bash
+python tools/starlink_monitor_cli.py export --output starlink_data.json
+```
+
+This command exports all collected metrics to the specified JSON file for further analysis or archival purposes.
+
+### Help
+
+View all available commands and options:
+
+```bash
+python tools/starlink_monitor_cli.py --help
+```
+
+View help for a specific command:
+
+```bash
+python tools/starlink_monitor_cli.py report --help
+python tools/starlink_monitor_cli.py export --help
+```
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the LICENSE file for details.
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. You'll also need the Starlink protobuf files (`device_pb2.py` and `device_pb2_grpc.py`). These can be generated from the official Starlink protobuf definitions.
+
+## Usage
+
+### Command Line Interface
+
+The main script provides a CLI for interacting with Starlink devices:
+
+```bash
+# Get diagnostics from both router and dish
+python starlink_client.py --command diagnostics
+
+# Get status from router only
+python starlink_client.py --command status --target router
+
+# Run a speed test
+python starlink_client.py --command run-speed-test
+
+# Get ping metrics
+python starlink_client.py --command ping
+
+# Get device information
+python starlink_client.py --command device-info
+
+# Reboot the router
+python starlink_client.py --command reboot --target router
+
+# Output to a file in JSON format
+python starlink_client.py --command status --format json --output status.json
+```
+
+### CLI Options
+
+- `--command, -c`: Command to execute (diagnostics, status, ping, reboot, speed-test, run-speed-test, device-info)
+- `--target, -t`: Target device (router, dish, both) - default: both
+- `--router-addr`: Router gRPC address - default: 192.168.1.1:9000
+- `--dish-addr`: Dish gRPC address - default: 192.168.100.1:9200
+- `--format, -f`: Output format (json, pretty) - default: pretty
+- `--output, -o`: Output file path (optional)
+
+### Python API
+
+You can also use the `StarlinkClient` class directly in your Python code:
+
+```python
+from starlink_client import StarlinkClient
+
+# Initialize the client
+client = StarlinkClient()
+
+# Get status
+status = client.get_status(target="both")
+print(status)
+
+# Get diagnostics
+diagnostics = client.get_diagnostics(target="router")
+print(diagnostics)
+
+# Get ping metrics
+ping_metrics = client.get_ping_metrics()
+print(ping_metrics)
+
+# Run speed test
+speed_test = client.run_speed_test()
+print(speed_test)
+
+# Get device info
+device_info = client.get_device_info(target="dish")
+print(device_info)
+
+# Reboot device
+result = client.reboot(target="router")
+print(result)
+```
+
+### Custom Addresses
+
+If your Starlink devices are on non-standard addresses:
+
+```python
+from starlink_client import StarlinkClient
+
+client = StarlinkClient(
+    router_addr="192.168.2.1:9000",
+    dish_addr="192.168.100.1:9200"
+)
+
+status = client.get_status()
+```
+
+## Examples
+
+The `examples/` directory contains various usage examples:
+
+- `basic_status.py` - Get basic status information
+- `get_diagnostics.py` - Retrieve detailed diagnostics
+- `ping_monitoring.py` - Monitor ping metrics (with continuous monitoring option)
+- `speed_test.py` - Run speed tests and retrieve results
+- `device_info.py` - Get detailed device information
+- `custom_addresses.py` - Use custom gRPC addresses
+
+Run an example:
+```bash
+cd examples
+python basic_status.py
+```
+
+## API Methods
+
+### StarlinkClient Methods
+
+- `get_diagnostics(target="both")` - Get diagnostic information
+- `get_status(target="both")` - Get current status
+- `get_ping_metrics()` - Get ping/latency metrics (dish only)
+- `get_speed_test()` - Get last speed test results (router only)
+- `run_speed_test()` - Run a new speed test (router only)
+- `get_device_info(target="both")` - Get device information
+- `reboot(target)` - Reboot a device (router or dish)
+
+### Parameters
+
+- `target`: Specifies which device(s) to query
+  - `"router"` - Router only
+  - `"dish"` - Dish only
+  - `"both"` - Both devices (where applicable)
+
+## Default Addresses
+
+- Router: `192.168.1.1:9000`
+- Dish: `192.168.100.1:9200`
+
+These are the standard addresses for Starlink devices on the local network.
+
+## Error Handling
+
+All methods return a dictionary. In case of errors, the response will contain an `"error"` key:
+
+```python
+result = client.get_status()
+if "error" in result.get("router", {}):
+    print(f"Router error: {result['router']['error']}")
+```
+
+## Network Requirements
+
+- Your computer must be connected to the Starlink network
+- Starlink devices must be accessible at their gRPC endpoints
+- No authentication is required for local network access
+
+## Troubleshooting
+
+**Connection Issues:**
+- Ensure you're connected to the Starlink network
+- Verify device addresses are correct
+- Check firewall settings aren't blocking gRPC ports
+
+**Import Errors:**
+- Make sure protobuf files (`device_pb2.py`, `device_pb2_grpc.py`) are in the same directory
+- Install all requirements: `pip install -r requirements.txt`
+A Python package for interacting with Starlink-related APIs, focusing on space traffic coordination and satellite operations.
+
+## Features
+
+### Starlink Space Safety API
+
+The Space Safety API is hosted at `space-safety.starlink.com` and provides tools for satellite operators to:
+
+- **Submit ephemeris files**: Upload orbital data for your satellites
+- **Screen against Starlink constellation**: Check for potential conjunctions
+- **Coordinate space traffic**: Ensure safe operations in shared orbital space
+A comprehensive Python library for interacting with Starlink user terminals. This library provides wrappers for various Starlink gRPC methods, enabling device management, network monitoring, and configuration.
+
+## Features
+
+### Available Methods
+
+✅ **Get Status/History** - Retrieve current status (connectivity, alerts) and historical data  
+✅ **Get Network Stats** - Download/upload speeds, latency, packet loss  
+✅ **Get Telemetry** - Device alerts, errors, warnings (streaming supported)  
+✅ **Reboot Dish** - Restart the user terminal  
+✅ **Set Dish Config** - Enable/disable features like snow melt mode, power saving  
+✅ **Get Device Location** - Precise location (local) or H3 cell (remote)  
+✅ **Get WiFi Status** - SSID, connected clients  
+✅ **Change WiFi Config** - Modify SSID, passwords, enable bypass mode  
+✅ **Get Account Data** - Basic account info (remote only)
+
+### Key Features
+
+- 🔌 Support for both local (gRPC) and remote (API) connections
+- 📊 Type-safe data models with validation
+- 🔄 Async support for telemetry streaming
+- 🛡️ Comprehensive error handling
+- 📖 Extensive documentation and examples
+- 🧪 Easy to test and integrate
+
+## Installation
+
+```bash
+pip install starlink-connectivity-tools
+```
+
+Or install from source:
+
+```bash
+git clone https://github.com/danielnovais-tech/starlink_connectivity_tools.py.git
+cd starlink_connectivity_tools.py
+pip install -e .
+```
+
+## Usage
+
+### Basic Example
+
+```python
+from starlink_connectivity_tools import SpaceSafetyAPI
+
+# Initialize the API client
+api = SpaceSafetyAPI(api_key="your_api_key_here")
+
+# Submit ephemeris data
+ephemeris_data = {
+    "satellite_id": "SAT-001",
+    "epoch": "2026-01-05T12:00:00Z",
+    "state_vector": {
+        "position": [7000.0, 0.0, 0.0],  # km
+        "velocity": [0.0, 7.5, 0.0]  # km/s
+    }
+}
+
+response = api.submit_ephemeris(ephemeris_data)
+print(f"Submission ID: {response['submission_id']}")
+
+# Screen for conjunctions
+results = api.screen_conjunction("SAT-001")
+print(f"Found {results['total_events']} potential conjunctions")
+
+# Close the session
+api.close()
+```
+
+### Using Context Manager
+
+```python
+from starlink_connectivity_tools import SpaceSafetyAPI
+
+with SpaceSafetyAPI(api_key="your_api_key_here") as api:
+    # Submit an ephemeris file
+    result = api.submit_ephemeris_file(
+        file_path="/path/to/ephemeris.oem",
+        file_format="oem"
+    )
+    
+    # Get constellation data
+    constellation = api.get_starlink_constellation_data(
+        filters={"active_only": True}
+    )
+    print(f"Active satellites: {len(constellation)}")
+```
+
+### Screening for Conjunctions
+
+```python
+from starlink_connectivity_tools import SpaceSafetyAPI
+
+api = SpaceSafetyAPI(api_key="your_api_key_here")
+
+# Screen with a specific time window
+time_window = {
+    "start": "2026-01-05T00:00:00Z",
+    "end": "2026-01-12T00:00:00Z"
+}
+
+results = api.screen_conjunction("SAT-001", time_window=time_window)
+
+for conjunction in results['conjunctions']:
+    print(f"Potential conjunction with {conjunction['starlink_satellite_id']}")
+    print(f"  Time: {conjunction['time_of_closest_approach']}")
+    print(f"  Miss distance: {conjunction['miss_distance']} km")
+    print(f"  Collision probability: {conjunction['probability_of_collision']}")
+```
+
+### Checking Submission Status
+
+```python
+from starlink_connectivity_tools import SpaceSafetyAPI
+
+api = SpaceSafetyAPI(api_key="your_api_key_here")
+
+# After submitting ephemeris data
+response = api.submit_ephemeris(ephemeris_data)
+submission_id = response['submission_id']
+
+# Check status later
+status = api.get_screening_status(submission_id)
+print(f"Status: {status['status']}")
+
+if status['status'] == 'completed':
+    print("Results:", status['results'])
+## Quick Start
+
+### Basic Usage
+
+```python
+from starlink_connectivity_tools import StarlinkClient
+
+# Connect to local Starlink device
+with StarlinkClient() as client:
+    # Get device status
+    status = client.get_status()
+    print(f"Device is {status.state.value}")
+    print(f"Uptime: {status.uptime_seconds // 3600} hours")
+    
+    # Get network statistics
+    stats = client.get_network_stats()
+    print(f"Download: {stats.download_mbps} Mbps")
+    print(f"Latency: {stats.latency_ms} ms")
+```
+
+### Network Monitoring
+
+```python
+from starlink_connectivity_tools import StarlinkClient
+
+with StarlinkClient() as client:
+    stats = client.get_network_stats()
+    
+    if stats.is_healthy():
+        print("✓ Network performance is good")
+    else:
+        print(f"⚠ High latency: {stats.latency_ms}ms")
+        print(f"⚠ Packet loss: {stats.packet_loss_percent}%")
+```
+
+### WiFi Management
+
+```python
+from starlink_connectivity_tools import StarlinkClient, WiFiConfig
+
+with StarlinkClient() as client:
+    # Get current WiFi status
+    wifi = client.get_wifi_status()
+    print(f"SSID: {wifi.ssid}")
+    print(f"Connected clients: {wifi.client_count()}")
+    
+    # Update WiFi configuration
+    config = WiFiConfig(
+        ssid="MyStarlink",
+        password="SecurePassword123"
+    )
+    client.set_wifi_config(config)
+```
+
+### Dish Configuration
+
+```python
+from starlink_connectivity_tools import StarlinkClient, DishConfig
+
+with StarlinkClient() as client:
+    # Enable snow melt mode
+    config = DishConfig(snow_melt_mode_enabled=True)
+    client.set_dish_config(config)
+    
+    # Enable power saving
+    config = DishConfig(power_save_mode_enabled=True)
+    client.set_dish_config(config)
+```
+
+### Device Telemetry
+
+```python
+from starlink_connectivity_tools import StarlinkClient, AlertLevel
+
+with StarlinkClient() as client:
+    telemetry = client.get_telemetry()
+    
+    print(f"Temperature: {telemetry.temperature_celsius}°C")
+    print(f"Power: {telemetry.power_input_watts}W")
+    
+    # Check for critical alerts
+    if telemetry.has_critical_alerts():
+        for alert in telemetry.get_alerts_by_level(AlertLevel.CRITICAL):
+            print(f"CRITICAL: {alert.message}")
+```
+
+### Async Telemetry Streaming
+
+```python
+import asyncio
+from starlink_connectivity_tools import StarlinkClient
+
+async def monitor_telemetry():
+    client = StarlinkClient()
+    client.connect()
+    
+    try:
+        async for telemetry in client.stream_telemetry():
+            print(f"Temp: {telemetry.temperature_celsius}°C")
+            
+            if telemetry.has_critical_alerts():
+                break
+    finally:
+        client.disconnect()
+
+asyncio.run(monitor_telemetry())
+```
+
+### Remote API (Account Data)
+
+```python
+from starlink_connectivity_tools import StarlinkClient
+
+# Remote API requires API key
+with StarlinkClient(use_remote=True, api_key="your-api-key") as client:
+    account = client.get_account_data()
+    
+    print(f"Service Line: {account.service_line_number}")
+    print(f"Data Used: {account.data_used_gb} GB")
+    
+    if account.is_near_limit():
+        print("⚠ Warning: Approaching data limit")
+```
+
+### Historical Data
+
+```python
+from starlink_connectivity_tools import StarlinkClient
+
+with StarlinkClient() as client:
+    # Get last 24 hours at 15-minute intervals
+    history = client.get_history(duration_hours=24, interval_minutes=15)
+    
+    for entry in history:
+        if entry.network_stats:
+            print(f"{entry.timestamp}: {entry.network_stats.latency_ms}ms")
+```
+
+## API Reference
+
+### SpaceSafetyAPI
+
+#### Constructor
+
+```python
+SpaceSafetyAPI(api_key=None, base_url="https://space-safety.starlink.com")
+```
+
+**Parameters:**
+- `api_key` (str, optional): API key for authentication
+- `base_url` (str): Base URL for the API
+
+#### Methods
+
+##### submit_ephemeris(ephemeris_data)
+
+Submit ephemeris data for a satellite.
+
+**Parameters:**
+- `ephemeris_data` (dict): Dictionary containing orbital parameters
+
+**Returns:** dict with submission confirmation
+
+##### submit_ephemeris_file(file_path, file_format="oem")
+
+Upload an ephemeris file.
+
+**Parameters:**
+- `file_path` (str): Path to the ephemeris file
+- `file_format` (str): Format of the file (e.g., "oem", "tle")
+
+**Returns:** dict with upload confirmation
+
+##### screen_conjunction(satellite_id, time_window=None)
+
+Screen for potential conjunctions with Starlink satellites.
+
+**Parameters:**
+- `satellite_id` (str): Satellite identifier
+- `time_window` (dict, optional): Time range for screening
+
+**Returns:** dict with conjunction results
+
+##### get_starlink_constellation_data(filters=None)
+
+Retrieve current Starlink constellation data.
+
+**Parameters:**
+- `filters` (dict, optional): Filters for constellation data
+
+**Returns:** list of satellite data
+
+##### get_screening_status(submission_id)
+
+Get the status of a previous submission.
+
+**Parameters:**
+- `submission_id` (str): Submission ID from previous request
+
+**Returns:** dict with status information
+
+## Important Notes
+
+### Starlink-UK API Clarification
+
+⚠️ **Important**: The "Starlink-UK API" is NOT related to SpaceX's Starlink satellite constellation. It is an unrelated astronomical software API from the University of Bristol for analyzing stellar populations.
+
+This package focuses exclusively on SpaceX Starlink-related APIs for satellite connectivity and space traffic coordination.
+
+For more information, see [STARLINK_UK_NOTE.md](starlink_connectivity_tools/STARLINK_UK_NOTE.md).
+
+### Official Resources
+
+For official updates and documentation:
+- **Starlink Support Portal**: https://support.starlink.com
+- **Space Safety API**: https://space-safety.starlink.com
+- **Developer Resources**: Check Starlink's official channels for API updates
+
+## Requirements
+
+- Python 3.7+
+- requests >= 2.25.0
+### StarlinkClient
+
+Main client class for interacting with Starlink devices.
+
+**Constructor:**
+```python
+StarlinkClient(
+    host: str = "192.168.100.1",
+    port: int = 9200,
+    use_remote: bool = False,
+    api_key: Optional[str] = None,
+    timeout: int = 10
+)
+```
+
+**Methods:**
+
+- `connect()` - Establish connection to device
+- `disconnect()` - Close connection
+- `get_status()` - Get current device status
+- `get_history(duration_hours, interval_minutes)` - Get historical data
+- `get_network_stats()` - Get network performance stats
+- `get_telemetry()` - Get device telemetry
+- `stream_telemetry()` - Stream telemetry (async)
+- `reboot_dish()` - Reboot the user terminal
+- `set_dish_config(config)` - Configure dish settings
+- `get_dish_config()` - Get current dish configuration
+- `get_device_location()` - Get device location
+- `get_wifi_status()` - Get WiFi status
+- `set_wifi_config(config)` - Update WiFi settings
+- `get_account_data()` - Get account info (remote only)
+
+### Data Models
+
+#### DeviceStatus
+- `state` - Device operational state
+- `uptime_seconds` - Device uptime
+- `connected` - Connection status
+- `alerts` - List of alerts
+- `hardware_version` - Hardware version
+- `software_version` - Software version
+
+#### NetworkStats
+- `download_mbps` - Download speed
+- `upload_mbps` - Upload speed
+- `latency_ms` - Latency in milliseconds
+- `packet_loss_percent` - Packet loss percentage
+- `is_healthy(max_latency_ms, max_packet_loss)` - Check if performance is good
+
+#### TelemetryData
+- `alerts` - List of alerts
+- `temperature_celsius` - Device temperature
+- `power_input_watts` - Power consumption
+- `errors` - List of errors
+- `warnings` - List of warnings
+- `has_critical_alerts()` - Check for critical alerts
+- `get_alerts_by_level(level)` - Filter alerts by severity
+
+#### WiFiStatus
+- `ssid` - Network name
+- `enabled` - WiFi enabled status
+- `connected_clients` - List of connected devices
+- `client_count()` - Number of connected clients
+
+#### WiFiConfig
+- `ssid` - Network name to set
+- `password` - Network password
+- `bypass_mode_enabled` - Bypass mode setting
+- `validate_ssid()` - Validate SSID
+- `validate_password()` - Validate password
+
+#### DishConfig
+- `snow_melt_mode_enabled` - Snow melt mode
+- `power_save_mode_enabled` - Power save mode
+- `is_power_saving()` - Check if power saving is active
+
+## Examples
+
+See [examples.py](examples.py) for comprehensive usage examples including:
+- Basic status monitoring
+- Network performance tracking
+- WiFi management
+- Dish configuration
+- Telemetry streaming
+- Remote API usage
+- Historical data retrieval
+
+## Development
+
+### Setup Development Environment
+
+```bash
+# Clone repository
+git clone https://github.com/danielnovais-tech/starlink_connectivity_tools.py.git
+cd starlink_connectivity_tools.py
+
+# Install with dev dependencies
+pip install -e ".[dev]"
+Python library for interacting with the Starlink dish gRPC API. This library provides a client for querying device status, network statistics, telemetry, and performing actions like rebooting the Starlink user terminal (dish).
+
+## Overview
+
+The Starlink user terminal exposes an **unauthenticated gRPC API** for monitoring and control. This API is not officially documented by SpaceX but has been reverse-engineered by the community.
+
+### API Details
+
+- **Protocol**: gRPC over HTTP/2
+- **Local Address**: `192.168.100.1:9200` (local network only)
+- **Authentication**: None required for local access
+- **Remote Access**: Possible via Starlink's remote API with session cookies (valid for 15 days)
+- **Service Discovery**: Supports gRPC server reflection
+
+## Features
+
+- ✅ Connect to local Starlink dish (192.168.100.1:9200)
+- ✅ Remote access with session cookie authentication
+- ✅ Service discovery using gRPC server reflection
+- ✅ Extract proto files from the dish
+- ✅ Query device status, network stats, and telemetry (requires proto files)
+- ✅ Perform actions like rebooting or configuring the dish (requires proto files)
+
+## Installation
+
+### From PyPI (when published)
+
+```bash
+pip install starlink-connectivity-tools
+```
+
+### From Source
+
+```bash
+git clone https://github.com/danielnovais-tech/starlink_connectivity_tools.py.git
+cd starlink_connectivity_tools.py
+pip install -e .
+```
+
+### Development Installation
+
+```bash
+pip install -e ".[dev]"
+```
+
+## Quick Start
+
+### Basic Connection
+
+```python
+from starlink_connectivity_tools import StarlinkDishClient
+
+# Connect to local dish
+with StarlinkDishClient() as client:
+    # Discover available services
+    services = client.discover_services()
+    print(f"Available services: {services}")
+```
+
+### Remote Access
+
+```python
+from starlink_connectivity_tools import StarlinkDishClient
+
+# Connect remotely with session cookie
+with StarlinkDishClient(
+    address="remote.starlink.com:9200",
+    session_cookie="your-session-cookie"
+) as client:
+    services = client.discover_services()
+    print(f"Available services: {services}")
+```
+
+### Extracting Proto Files
+
+```python
+from starlink_connectivity_tools.client import StarlinkDishClient
+from starlink_connectivity_tools.reflection import ProtoReflectionClient
+
+# Connect to dish
+client = StarlinkDishClient()
+client.connect()
+
+# Create reflection client
+reflection_client = ProtoReflectionClient(client._channel)
+
+# List services
+services = reflection_client.list_services()
+
+# Extract proto file for a service
+reflection_client.export_proto_file(
+    services[0], 
+    "./proto_files/starlink.proto"
+)
+```
+
+## Examples
+
+Several example scripts are provided in the `examples/` directory:
+
+### Basic Usage
+```bash
+python examples/basic_usage.py
+```
+
+Demonstrates basic connection and service discovery.
+
+### Extract Proto Files
+```bash
+python examples/extract_proto.py [output_directory]
+```
+
+Extracts proto file definitions from the Starlink dish using server reflection.
+
+### Remote Access
+```bash
+python examples/remote_access.py <session_cookie> [remote_address]
+```
+
+Connects to the Starlink dish remotely using session cookies.
+
+## Using Proto Files
+
+The Starlink gRPC API requires proto files to make actual RPC calls. You have two options:
+
+### Option 1: Extract from Dish (Recommended)
+
+Use the `extract_proto.py` example to extract proto files directly from your dish:
+
+```bash
+python examples/extract_proto.py ./proto_files
+```
+
+### Option 2: Use Community Proto Files
+
+The community has reverse-engineered proto files. Search for "starlink grpc proto" to find them.
+
+### Compiling Proto Files
+
+Once you have the proto files, compile them:
+
+```bash
+python -m grpc_tools.protoc \
+    -I./proto_files \
+    --python_out=. \
+    --grpc_python_out=. \
+    proto_files/*.proto
+```
+
+## API Reference
+
+### StarlinkDishClient
+
+Main client class for interacting with the Starlink dish.
+
+#### Constructor Parameters
+
+- `address` (str, optional): gRPC server address. Defaults to `192.168.100.1:9200`
+- `session_cookie` (str, optional): Session cookie for remote access
+- `use_reflection` (bool): Whether to use server reflection. Default: `True`
+- `insecure` (bool): Whether to use insecure channel. Default: `True`
+- `timeout` (int): Default timeout for RPC calls in seconds. Default: `10`
+
+#### Methods
+
+- `connect()`: Establish connection to the gRPC server
+- `close()`: Close the gRPC channel
+- `discover_services()`: List available gRPC services
+- `get_status()`: Get device status (requires proto files)
+- `get_network_stats()`: Get network statistics (requires proto files)
+- `get_telemetry()`: Get telemetry data (requires proto files)
+- `reboot()`: Reboot the dish (requires proto files)
+- `set_configuration(config)`: Configure the dish (requires proto files)
+
+### ProtoReflectionClient
+
+Client for extracting proto definitions using gRPC server reflection.
+
+#### Methods
+
+- `list_services()`: List all available services
+- `get_file_descriptor(symbol)`: Get file descriptor for a symbol
+- `export_proto_file(symbol, output_path)`: Export proto file to disk
+
+## Troubleshooting
+
+### Cannot Connect to Local Dish
+
+1. Ensure you're connected to the Starlink WiFi network
+2. Verify the dish is powered on and operational
+3. Check the address is `192.168.100.1:9200`
+4. Some network configurations may block local gRPC access
+
+### Remote Access Not Working
+
+1. Verify your session cookie is still valid (15-day expiry)
+2. Session cookies can be extracted from browser developer tools
+3. Check you have internet connectivity
+4. Ensure the remote address is correct
+
+### Service Discovery Fails
+
+1. The dish may not support server reflection (older firmware)
+2. Try using community proto files instead
+3. Check network connectivity
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## Disclaimer
+
+This is an unofficial library and is not affiliated with, endorsed by, or connected to SpaceX or Starlink. Use at your own risk.
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Disclaimer
+
+This is an unofficial tool and is not affiliated with or endorsed by SpaceX or Starlink. Use at your own risk.
+
+## Acknowledgments
+
+Based on the Starlink gRPC API for enterprises and business customers.
+See [LICENSE](LICENSE) file for details.
+
+## Disclaimer
+
+This is an unofficial package. For official Starlink services and support, please visit https://starlink.com.
+
+APIs may evolve over time. Check official Starlink resources for the latest updates.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Disclaimer
+
+This library is **not officially supported by SpaceX**. It relies on reverse-engineered API knowledge from the community. The API may change without notice, and usage is at your own risk.
+
+## Acknowledgments
+
+- Community efforts in reverse-engineering the Starlink API
+- Tools like `grpcurl` and `grpc-reflection` that enable API discovery
+
+## Related Tools
+
+- [grpcurl](https://github.com/fullstorydev/grpcurl) - Command-line gRPC client
+- [starlink-grpc-tools](https://github.com/sparky8512/starlink-grpc-tools) - Community Starlink tools
+- [dishykit](https://github.com/Tylerjet/dishykit) - Starlink dish analysis tools
+
+## Support
+
+For issues and questions:
+- Open an issue on [GitHub](https://github.com/danielnovais-tech/starlink_connectivity_tools.py/issues)
+- Check existing community resources and documentation
+Python library for interacting with the Starlink API. This library provides a simple and intuitive interface to access Starlink's various API endpoints.
+
+## Installation
+
+```bash
+pip install starlink-connectivity-tools
+```
+
+Or install from source:
+
+```bash
+git clone https://github.com/danielnovais-tech/starlink_connectivity_tools.py.git
+cd starlink_connectivity_tools.py
+pip install -e .
+```
+
+## Requirements
+
+- Python 3.7+
+- requests >= 2.25.0
+# starlink_connectivity_tools.py
+
+## Starlink Enterprise API
+
+Official API for managing Starlink accounts and devices, primarily targeted at enterprise users. It allows programmatic control over subscriptions, service lines, user terminals, and more.
+
+### Description
+
+**Purpose:** Manage accounts, addresses, data usage, routers, service lines, subscriptions, TLS configurations, and user terminals.
+
+**Base URL:** `https://web-api.starlink.com/enterprise`
+
+**Documentation:** 
+- Available via Swagger UI at [https://web-api.starlink.com/enterprise/swagger/index.html](https://web-api.starlink.com/enterprise/swagger/index.html)
+
+### Authentication
+
+The Starlink Enterprise API uses **OpenID Connect (OIDC)** for authentication.
+
+**Well-known configuration URL:** `https://web-api.starlink.com/enterprise/api/auth/.well-known/openid-configuration`
+
+**Authentication Process:**
+1. Obtain access tokens from the OIDC provider
+2. Attach tokens to API requests using the Authorization header: `Authorization: Bearer <access_token>`
+
+**Service Accounts:**
+- Service accounts can be created in the Starlink account settings under "Service Accounts"
+- These accounts are specifically designed for API access
+- Use service account credentials to authenticate and make API calls programmatically
+A Python library for interacting with Starlink satellite internet devices.
+
+## Installation
+
+```bash
+pip install -e .
+```
+
+Or using the package directly:
+
+```bash
+python setup.py install
+# Starlink Connectivity Tools
+
+Python library for monitoring and managing Starlink dish connectivity with emergency mode support.
+
+## Features
+
+- Monitor Starlink dish status in real-time
+- Detect emergency conditions (motor issues, obstructions, thermal problems)
+- Emergency actions (stow/unstow dish, reboot)
+- Simulated dish interface for testing and development
+
+## Installation
+# starlink_connectivity_tools.py
+
 Python tools for monitoring Starlink connectivity.
 
 ## Usage Examples
@@ -1338,6 +2856,167 @@ pip install -e ".[dev]"
 ## Quick Start
 
 ```python
+from starlink_connectivity_tools import StarlinkClient, AccountsAPI, AddressesAPI
+
+# Initialize the client
+client = StarlinkClient(base_url="https://api.starlink.com", api_key="your_api_key")
+
+# Get account information
+accounts_api = AccountsAPI(client)
+account = accounts_api.get_account()
+print(f"Email: {account['email']}")
+
+# Create a new address
+addresses_api = AddressesAPI(client)
+address = addresses_api.create_address({
+    'street': '123 Main St',
+    'city': 'Seattle',
+    'state': 'WA',
+    'zip': '98101'
+})
+print(f"Address ID: {address['id']}")
+```
+
+## API Endpoints
+
+This library provides access to the following Starlink API endpoints:
+
+### Accounts
+- `GET /account` - Retrieve account details (email, customer info)
+
+```python
+from starlink_connectivity_tools import StarlinkClient, AccountsAPI
+
+client = StarlinkClient(api_key="your_api_key")
+accounts = AccountsAPI(client)
+account = accounts.get_account()
+```
+
+### Addresses
+- `POST /addresses` - Create a new address for service activation
+- `GET /addresses/{id}` - Get details of a specific address
+
+```python
+from starlink_connectivity_tools import StarlinkClient, AddressesAPI
+
+client = StarlinkClient(api_key="your_api_key")
+addresses = AddressesAPI(client)
+
+# Create address
+new_address = addresses.create_address({
+    'street': '123 Main St',
+    'city': 'Seattle',
+    'state': 'WA',
+    'zip': '98101'
+})
+
+# Get address
+address = addresses.get_address('addr_12345')
+```
+
+### Data Usage
+- `GET /data-usage` - Fetch data usage statistics for the account or devices
+
+```python
+from starlink_connectivity_tools import StarlinkClient, DataUsageAPI
+
+client = StarlinkClient(api_key="your_api_key")
+data_usage = DataUsageAPI(client)
+usage = data_usage.get_data_usage()
+```
+
+### Routers
+- `GET /routers/{id}/config` - Get router configuration
+
+```python
+from starlink_connectivity_tools import StarlinkClient, RoutersAPI
+
+client = StarlinkClient(api_key="your_api_key")
+routers = RoutersAPI(client)
+config = routers.get_router_config('router_12345')
+```
+
+### Service Lines
+- `POST /service-lines` - Create a new service line (for activation)
+- `GET /service-lines/{id}` - Retrieve service line details
+
+```python
+from starlink_connectivity_tools import StarlinkClient, ServiceLinesAPI
+
+client = StarlinkClient(api_key="your_api_key")
+service_lines = ServiceLinesAPI(client)
+
+# Create service line
+new_line = service_lines.create_service_line({
+    'address_id': 'addr_12345',
+    'product_id': 'prod_12345'
+})
+
+# Get service line
+line = service_lines.get_service_line('line_12345')
+```
+
+### Subscriptions
+- `GET /subscriptions` - List available or active subscription products
+
+```python
+from starlink_connectivity_tools import StarlinkClient, SubscriptionsAPI
+
+client = StarlinkClient(api_key="your_api_key")
+subscriptions = SubscriptionsAPI(client)
+subs = subscriptions.get_subscriptions()
+```
+
+### User Terminals
+- `GET /user-terminals/{id}` - Get user terminal (dish) details, including ID
+- `POST /user-terminals` - Activate or manage a user terminal
+
+```python
+from starlink_connectivity_tools import StarlinkClient, UserTerminalsAPI
+
+client = StarlinkClient(api_key="your_api_key")
+terminals = UserTerminalsAPI(client)
+
+# Get terminal
+terminal = terminals.get_user_terminal('term_12345')
+
+# Create/activate terminal
+new_terminal = terminals.create_user_terminal({
+    'service_line_id': 'line_12345',
+    'serial_number': 'SN12345'
+})
+```
+
+### TLS
+- `GET /tls` - Retrieve TLS configuration for secure communications
+
+```python
+from starlink_connectivity_tools import StarlinkClient, TLSAPI
+
+client = StarlinkClient(api_key="your_api_key")
+tls = TLSAPI(client)
+config = tls.get_tls_config()
+```
+
+## Development
+
+### Running Tests
+
+```bash
+# Install development dependencies
+pip install -e ".[dev]"
+
+# Run tests
+python -m pytest tests/
+
+# Run with coverage
+python -m pytest --cov=starlink_connectivity_tools tests/
+```
+
+### Running Tests with unittest
+
+```bash
+python -m unittest discover tests
 from starlink_connectivity_tools import StarlinkManager
 
 # Initialize the manager
@@ -1353,6 +3032,61 @@ print(f"Connection Status: {status}")
 
 ## Usage
 
+```python
+from starlink_client import StarlinkClient
+
+client = StarlinkClient()  # Local connection
+stats = client.get_network_stats()
+print(f"Download: {stats.download_speed} Mbps, Latency: {stats.latency} ms")
+client.reboot_dish()
+```
+
+## Features
+
+- **Network Statistics**: Retrieve download/upload speeds, latency, and connection status
+- **Device Control**: Reboot your Starlink dish remotely
+- **Easy Integration**: Simple Python API for Starlink device interaction
+
+## API Reference
+
+### StarlinkClient
+
+Main client class for interacting with Starlink devices.
+
+```python
+client = StarlinkClient(host="192.168.100.1", port=9200, timeout=10)
+```
+
+#### Methods
+
+- `get_network_stats()`: Returns a `NetworkStats` object with current network performance metrics
+- `reboot_dish()`: Initiates a reboot of the Starlink dish
+
+### NetworkStats
+
+Data class containing network statistics:
+
+- `download_speed`: Download speed in Mbps
+- `upload_speed`: Upload speed in Mbps  
+- `latency`: Latency in milliseconds
+- `uptime`: Device uptime in seconds
+- `obstruction_percentage`: Percentage of time obstructed
+- `connected`: Whether the dish is connected to satellites
+
+## Example
+
+See `example.py` for a complete example:
+
+```bash
+python example.py
+```
+
+## Development
+
+Install development dependencies:
+
+```bash
+pip install -e ".[dev]"
 ### Connection Management
 
 The `SatelliteConnectionManager` class provides methods to manage satellite connections:
@@ -1610,6 +3344,88 @@ starlink:
 git clone https://github.com/danielnovais-tech/starlink_connectivity_tools.py.git
 cd starlink_connectivity_tools.py
 
+# Install in development mode
+pip install -e .
+```
+
+## Quick Start
+
+```python
+from starlink_connectivity_tools import StarlinkDish
+
+# Connect to the dish
+with StarlinkDish() as dish:
+    # Get status
+    status = dish.get_status()
+    print(f"Connected satellites: {status['connected_satellites']}")
+    
+    # Check for emergencies
+    emergency = dish.check_emergency_conditions()
+    if emergency:
+        print(f"Emergency detected: {emergency}")
+        dish.stow()  # Protective action
+```
+
+## Usage Examples
+
+### Emergency Mode Example
+
+Run the comprehensive emergency mode example:
+
+```bash
+python examples/emergency_mode.py
+```
+
+This example demonstrates:
+- Real-time status monitoring
+- Emergency condition detection
+- Interactive emergency handling
+- Continuous monitoring mode
+
+See [examples/README.md](examples/README.md) for more details.
+
+## API Overview
+
+### StarlinkDish Class
+
+Main interface for interacting with Starlink dish.
+
+**Methods:**
+- `connect()` - Establish connection to dish
+- `disconnect()` - Disconnect from dish
+- `get_status()` - Get current dish status
+- `check_emergency_conditions()` - Check for emergency conditions
+- `stow()` - Stow dish to emergency position
+- `unstow()` - Return dish to normal operation
+- `reboot()` - Reboot the dish
+
+**Context Manager Support:**
+```python
+with StarlinkDish() as dish:
+    # Automatic connection and cleanup
+    status = dish.get_status()
+```
+
+## Emergency Conditions
+
+The library monitors for various emergency conditions:
+
+- **MOTOR_STUCK**: Dish motor malfunction
+- **HIGH_OBSTRUCTION**: Objects blocking dish view (>10%)
+- **THERMAL_THROTTLE**: Overheating causing performance degradation
+- **HIGH_LATENCY**: Network latency exceeding thresholds (>100ms)
+
+## Development
+
+This is a simulated implementation for demonstration and testing. In production, it would connect to an actual Starlink dish via gRPC at `192.168.100.1:9200`.
+
+## License
+
+MIT License - see LICENSE file for details
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 # Create virtual environment
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
@@ -1626,6 +3442,24 @@ python -m pytest tests/
 ### Running Tests
 
 ```bash
+pytest
+```
+
+### Code Formatting
+
+```bash
+black starlink_connectivity_tools/
+ruff check starlink_connectivity_tools/
+```
+
+## Requirements
+
+- Python 3.8+
+- grpcio >= 1.50.0
+
+## License
+
+MIT License - see [LICENSE](LICENSE) file for details.
 python -m unittest discover tests
 # Run all tests
 pytest
@@ -1639,6 +3473,7 @@ pytest tests/test_connection_manager.py
 
 ## Contributing
 
+Contributions are welcome! Please feel free to submit a Pull Request.
 We welcome contributions! Please follow these guidelines:
 
 1. Fork the repository
@@ -1656,6 +3491,9 @@ Please ensure your code:
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## Disclaimer
+
+This library is not officially affiliated with or endorsed by Starlink or SpaceX. Use at your own risk. Always refer to the official Starlink API documentation for the most up-to-date information.
 ## Acknowledgments
 
 - Built on top of the excellent [starlink-grpc](https://github.com/sparky8512/starlink-grpc-tools) library
@@ -1867,6 +3705,7 @@ mypy src/
 
 ## License
 
+MIT License - see LICENSE file for details
 This project is licensed under the Apache License 2.0 - see the LICENSE file for details.
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 This project is licensed under the MIT License - see the LICENSE file for details.
@@ -1875,6 +3714,15 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+## Acknowledgments
+
+Inspired by:
+- [starlink-client](https://github.com/sparky8512/starlink-grpc-tools) - Multi-language Starlink client libraries
+- [starlink-grpc-tools](https://github.com/sparky8512/starlink-grpc-tools) - Scripts and tools for Starlink gRPC
+
+## Support
+
+For issues and questions, please use the [GitHub Issues](https://github.com/danielnovais-tech/starlink_connectivity_tools.py/issues) page.
 ## Support
 
 For issues and questions, please open an issue on the GitHub repository.
