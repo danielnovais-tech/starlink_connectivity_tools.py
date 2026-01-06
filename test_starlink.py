@@ -8,8 +8,6 @@ import json
 import os
 import sys
 import tempfile
-from pathlib import Path
-
 # Test utilities
 def test_create_config():
     """Test configuration creation"""
