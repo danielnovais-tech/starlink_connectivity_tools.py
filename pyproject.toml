@@ -4,6 +4,23 @@ requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
+name = "starlink-connectivity-tools"
+version = "0.1.0"
+description = "Python package for interacting with Starlink-related APIs"
+readme = "README.md"
+requires-python = ">=3.7"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Daniel Novais Tech", email = "info@danielnovais.tech"}
+]
+keywords = ["starlink", "satellite", "space", "api", "space-safety", "conjunction-screening"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Astronomy",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "License :: OSI Approved :: Apache Software License",
 name = "starlink-client"
 version = "0.1.0"
 description = "A Python library for interacting with Starlink satellite internet devices"
@@ -61,6 +78,10 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "requests>=2.25.0",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: System :: Networking",
 ]
@@ -74,6 +95,24 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "pytest>=6.0",
+    "pytest-cov>=2.0",
+    "black>=22.0",
+    "flake8>=4.0",
+    "mypy>=0.900",
+]
+
+[project.urls]
+Homepage = "https://github.com/danielnovais-tech/starlink_connectivity_tools.py"
+Documentation = "https://github.com/danielnovais-tech/starlink_connectivity_tools.py#readme"
+Repository = "https://github.com/danielnovais-tech/starlink_connectivity_tools.py"
+Issues = "https://github.com/danielnovais-tech/starlink_connectivity_tools.py/issues"
+
+[tool.setuptools]
+packages = ["starlink_connectivity_tools"]
+
+[tool.setuptools.package-data]
+starlink_connectivity_tools = ["*.md"]
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
     "black>=23.0.0",
