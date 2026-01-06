@@ -13,11 +13,20 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "starlink-connectivity-tools"
 version = "0.1.0"
+description = "Python library for interacting with Starlink user terminals"
 description = "Python tools for interacting with Starlink dish gRPC API"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
+    {name = "Daniel Novais Tech"}
+]
+keywords = ["starlink", "satellite", "connectivity", "grpc", "api"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
     {name = "Daniel Novais"}
 ]
 keywords = ["starlink", "grpc", "satellite", "connectivity"]
@@ -52,6 +61,8 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Networking",
 ]
 
 dependencies = [
@@ -64,6 +75,11 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "mypy>=1.0.0",
+    "ruff>=0.1.0",
+]
     "pytest-cov>=4.0.0",
     "pytest-asyncio>=0.20.0",
     "black>=23.0.0",
@@ -93,6 +109,7 @@ starlink-cli = "cli.starlink_cli:main"
 [project.urls]
 Homepage = "https://github.com/danielnovais-tech/starlink_connectivity_tools.py"
 Repository = "https://github.com/danielnovais-tech/starlink_connectivity_tools.py"
+Issues = "https://github.com/danielnovais-tech/starlink_connectivity_tools.py/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -100,6 +117,13 @@ include = ["starlink_connectivity_tools*"]
 
 [tool.black]
 line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
 target-version = ['py38']
 
 [tool.ruff]
@@ -111,6 +135,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+asyncio_mode = "auto"
 [tool.setuptools]
 packages = ["starlink_client"]
 Documentation = "https://github.com/danielnovais-tech/starlink_connectivity_tools.py#readme"
