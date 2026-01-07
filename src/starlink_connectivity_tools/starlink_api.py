@@ -9,6 +9,7 @@ from loguru import logger
 try:
     from starlink_grpc import ChannelContext, GrpcError
     from spacex.api.device import device_pb2
+
     STARLINK_AVAILABLE = True
 except ImportError:
     STARLINK_AVAILABLE = False
@@ -37,7 +38,9 @@ class StarlinkAPI:
                 self.context = ChannelContext(target=self.target)
                 logger.info(f"Connected to Starlink dish at {self.target}")
             except Exception as e:
-                logger.warning(f"Failed to connect to Starlink: {e}. Using simulation mode.")
+                logger.warning(
+                    f"Failed to connect to Starlink: {e}. Using simulation mode."
+                )
                 self.simulation_mode = True
 
     def get_status(self) -> Dict[str, Any]:
@@ -60,7 +63,7 @@ class StarlinkAPI:
 
             if response.HasField("dish_get_status"):
                 status = response.dish_get_status
-                
+
                 # Extract key metrics
                 result = {
                     "uptime": status.device_info.uptime_s,
@@ -115,7 +118,9 @@ class StarlinkAPI:
                 return {
                     "obstructed": response.dish_get_status.obstructed,
                     "fraction_obstructed": obs_stats.fraction_obstructed,
-                    "wedge_fraction_obstructed": list(obs_stats.wedge_fraction_obstructed),
+                    "wedge_fraction_obstructed": list(
+                        obs_stats.wedge_fraction_obstructed
+                    ),
                     "valid_s": obs_stats.valid_s,
                     "timestamp": datetime.now().isoformat(),
                 }
@@ -181,7 +186,7 @@ class StarlinkAPI:
     def unstow(self) -> bool:
         """
         Unstow the Starlink dish (move to operational position).
-        
+
         Note: The Starlink API doesn't have a dedicated unstow command.
         The dish automatically unstows when it needs to acquire satellites.
         This method triggers a status check which may prompt the dish to begin searching.
@@ -271,11 +276,11 @@ class StarlinkAPI:
             16: "SLOW_ETHERNET_SPEEDS",
             32: "SOFTWARE_INSTALL_PENDING",
         }
-        
+
         for bit, name in alert_names.items():
             if alerts & bit:
                 alert_list.append(name)
-        
+
         return alert_list
 
     def _get_simulated_status(self) -> Dict[str, Any]:
@@ -300,7 +305,7 @@ class StarlinkAPI:
         uplink = list(10_000_000 + 2_000_000 * np.random.randn(samples))
         snr = list(9 + 2 * np.random.randn(samples))
         obstructed = [False] * samples
-        
+
         return {
             "pop_ping_latency_ms": latency,
             "downlink_throughput_bps": downlink,

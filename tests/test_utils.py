@@ -1,6 +1,7 @@
 """
 Tests for utility functions.
 """
+
 import pytest
 from starlink_connectivity_tools.utils import check_connection, format_speed
 

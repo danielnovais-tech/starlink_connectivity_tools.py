@@ -12,6 +12,7 @@ from .starlink_api import StarlinkAPI
 
 class ConnectionType(Enum):
     """Types of satellite connections."""
+
     STARLINK = "starlink"
     IRIDIUM = "iridium"
     INMARSAT = "inmarsat"
@@ -21,6 +22,7 @@ class ConnectionType(Enum):
 
 class ConnectionStatus(Enum):
     """Connection status states."""
+
     CONNECTED = "connected"
     DEGRADED = "degraded"
     DISCONNECTED = "disconnected"
@@ -64,14 +66,15 @@ class SatelliteConnection:
                 status = self.api_client.get_status()
                 self.metrics = {
                     "latency_ms": status.get("ping_latency_ms", 0),
-                    "downlink_mbps": status.get("downlink_throughput_bps", 0) / 1_000_000,
+                    "downlink_mbps": status.get("downlink_throughput_bps", 0)
+                    / 1_000_000,
                     "uplink_mbps": status.get("uplink_throughput_bps", 0) / 1_000_000,
                     "snr": status.get("snr", 0),
                     "obstructed": status.get("obstructed", False),
                     "state": status.get("state", "UNKNOWN"),
                 }
                 self.last_check = time.time()
-                
+
                 # Update status based on metrics
                 if self.metrics["state"] == "CONNECTED":
                     if self.metrics["obstructed"] or self.metrics["latency_ms"] > 100:
@@ -81,9 +84,9 @@ class SatelliteConnection:
                         self.failure_count = 0
                 else:
                     self.status = ConnectionStatus.CONNECTING
-                
+
                 return self.metrics
-                
+
             except Exception as e:
                 logger.error(f"Error getting metrics for {self.name}: {e}")
                 self.failure_count += 1
@@ -102,9 +105,11 @@ class SatelliteConnection:
             ConnectionType.THURAYA: 600,
             ConnectionType.OTHER: 500,
         }
-        
-        latency = base_latency.get(self.connection_type, 500) + random.randint(-100, 100)
-        
+
+        latency = base_latency.get(self.connection_type, 500) + random.randint(
+            -100, 100
+        )
+
         return {
             "latency_ms": latency,
             "downlink_mbps": random.uniform(0.5, 5.0),
@@ -132,11 +137,7 @@ class SatelliteConnectionManager:
         self.last_health_check = None
 
     def add_connection(
-        self,
-        name: str,
-        connection_type: ConnectionType,
-        priority: int = 0,
-        **kwargs
+        self, name: str, connection_type: ConnectionType, priority: int = 0, **kwargs
     ) -> SatelliteConnection:
         """
         Add a satellite connection.
@@ -151,20 +152,22 @@ class SatelliteConnectionManager:
             Created SatelliteConnection object
         """
         api_client = None
-        
+
         if connection_type == ConnectionType.STARLINK:
             api_client = StarlinkAPI(
                 target=kwargs.get("target"),
-                simulation_mode=kwargs.get("simulation_mode", False)
+                simulation_mode=kwargs.get("simulation_mode", False),
             )
-        
+
         connection = SatelliteConnection(name, connection_type, priority, api_client)
         self.connections.append(connection)
-        
+
         # Sort by priority (highest first)
         self.connections.sort(key=lambda c: c.priority, reverse=True)
-        
-        logger.info(f"Added connection: {name} ({connection_type.value}) with priority {priority}")
+
+        logger.info(
+            f"Added connection: {name} ({connection_type.value}) with priority {priority}"
+        )
         return connection
 
     def get_active_connection(self) -> Optional[SatelliteConnection]:
@@ -199,12 +202,12 @@ class SatelliteConnectionManager:
             True if connection established successfully
         """
         connection = self.select_best_connection()
-        
+
         if connection:
             self.active_connection = connection
             logger.info(f"Connected via {connection.name}")
             return True
-        
+
         logger.error("Failed to establish any connection")
         return False
 
@@ -217,20 +220,24 @@ class SatelliteConnectionManager:
         """
         health_status = {
             "timestamp": datetime.now().isoformat(),
-            "active_connection": self.active_connection.name if self.active_connection else None,
+            "active_connection": (
+                self.active_connection.name if self.active_connection else None
+            ),
             "connections": [],
         }
 
         for connection in self.connections:
             metrics = connection.get_metrics()
-            health_status["connections"].append({
-                "name": connection.name,
-                "type": connection.connection_type.value,
-                "status": connection.status.value,
-                "priority": connection.priority,
-                "metrics": metrics,
-                "failure_count": connection.failure_count,
-            })
+            health_status["connections"].append(
+                {
+                    "name": connection.name,
+                    "type": connection.connection_type.value,
+                    "status": connection.status.value,
+                    "priority": connection.priority,
+                    "metrics": metrics,
+                    "failure_count": connection.failure_count,
+                }
+            )
 
         self.last_health_check = time.time()
         return health_status
@@ -251,10 +258,10 @@ class SatelliteConnectionManager:
                 f"Connection {self.active_connection.name} has failed {self.active_connection.failure_count} times. "
                 "Attempting failover..."
             )
-            
+
             # Try to find a better connection
             new_connection = self.select_best_connection()
-            
+
             if new_connection and new_connection != self.active_connection:
                 old_name = self.active_connection.name
                 self.active_connection = new_connection
@@ -272,7 +279,9 @@ class SatelliteConnectionManager:
         """
         stats = {
             "total_connections": len(self.connections),
-            "active_connection": self.active_connection.name if self.active_connection else None,
+            "active_connection": (
+                self.active_connection.name if self.active_connection else None
+            ),
             "connections": {},
         }
 
@@ -299,11 +308,10 @@ class SatelliteConnectionManager:
             True if recovery was successful
         """
         target_connection = None
-        
+
         if connection_name:
             target_connection = next(
-                (c for c in self.connections if c.name == connection_name),
-                None
+                (c for c in self.connections if c.name == connection_name), None
             )
         else:
             target_connection = self.active_connection
@@ -315,7 +323,10 @@ class SatelliteConnectionManager:
         logger.info(f"Attempting to recover connection: {target_connection.name}")
 
         # If it's a Starlink connection, try reboot
-        if target_connection.connection_type == ConnectionType.STARLINK and target_connection.api_client:
+        if (
+            target_connection.connection_type == ConnectionType.STARLINK
+            and target_connection.api_client
+        ):
             try:
                 logger.info("Attempting Starlink dish reboot...")
                 if target_connection.api_client.reboot():
@@ -332,9 +343,9 @@ class SatelliteConnectionManager:
     def close_all(self):
         """Close all connections."""
         for connection in self.connections:
-            if connection.api_client and hasattr(connection.api_client, 'close'):
+            if connection.api_client and hasattr(connection.api_client, "close"):
                 connection.api_client.close()
-        
+
         self.connections.clear()
         self.active_connection = None
         logger.info("Closed all connections")

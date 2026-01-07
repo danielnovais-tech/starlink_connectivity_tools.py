@@ -1,6 +1,7 @@
 """
 Tests for the StarlinkConnectivity class.
 """
+
 import pytest
 from starlink_connectivity_tools.connectivity import StarlinkConnectivity
 
@@ -40,7 +41,7 @@ class TestStarlinkConnectivity:
         conn = StarlinkConnectivity(dish_id="DISH-12345")
         conn.connect()
         assert conn.is_connected()
-        
+
         result = conn.disconnect()
         assert result is True
         assert not conn.is_connected()
@@ -49,7 +50,7 @@ class TestStarlinkConnectivity:
         """Test get_status when not connected."""
         conn = StarlinkConnectivity(dish_id="DISH-12345")
         status = conn.get_status()
-        
+
         assert status["dish_id"] == "DISH-12345"
         assert status["connected"] is False
 
@@ -58,6 +59,6 @@ class TestStarlinkConnectivity:
         conn = StarlinkConnectivity(dish_id="DISH-12345")
         conn.connect()
         status = conn.get_status()
-        
+
         assert status["dish_id"] == "DISH-12345"
         assert status["connected"] is True

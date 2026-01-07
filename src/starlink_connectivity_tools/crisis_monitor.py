@@ -1,6 +1,5 @@
 """Crisis-optimized monitoring with adjustable thresholds and automatic recovery."""
 
-import time
 import numpy as np
 from typing import Dict, Any, Optional, List, Callable
 from datetime import datetime, timedelta
@@ -13,6 +12,7 @@ from .satellite_connection_manager import SatelliteConnectionManager
 
 class ScenarioType(Enum):
     """Pre-configured crisis scenarios."""
+
     NORMAL = "normal"
     HUMANITARIAN = "humanitarian"
     MEDICAL = "medical"
@@ -23,6 +23,7 @@ class ScenarioType(Enum):
 
 class IssueType(Enum):
     """Types of detected issues."""
+
     HIGH_LATENCY = "high_latency"
     LOW_BANDWIDTH = "low_bandwidth"
     OBSTRUCTION = "obstruction"
@@ -119,16 +120,18 @@ class CrisisMonitor:
         self.connection_manager = connection_manager
         self.scenario = scenario
         self.thresholds = self.SCENARIO_THRESHOLDS[scenario].copy()
-        
+
         self.active_issues: List[Issue] = []
         self.resolved_issues: List[Issue] = []
         self.performance_history: deque = deque(maxlen=1000)
-        
+
         self.monitoring = False
         self.monitor_interval = 10  # seconds
         self.auto_recovery_enabled = True
-        self.issue_persistence_threshold = 3  # Number of consecutive detections before action
-        
+        self.issue_persistence_threshold = (
+            3  # Number of consecutive detections before action
+        )
+
         self.callbacks: Dict[str, List[Callable]] = {
             "issue_detected": [],
             "issue_resolved": [],
@@ -162,7 +165,7 @@ class CrisisMonitor:
         """
         health_status = self.connection_manager.perform_health_check()
         active_conn = self.connection_manager.get_active_connection()
-        
+
         if not active_conn:
             issue = Issue(
                 IssueType.DISCONNECTION,
@@ -184,7 +187,11 @@ class CrisisMonitor:
         if metrics.get("latency_ms", 0) > self.thresholds["max_latency_ms"]:
             issue = Issue(
                 IssueType.HIGH_LATENCY,
-                "warning" if metrics["latency_ms"] < self.thresholds["max_latency_ms"] * 1.5 else "critical",
+                (
+                    "warning"
+                    if metrics["latency_ms"] < self.thresholds["max_latency_ms"] * 1.5
+                    else "critical"
+                ),
                 f"High latency: {metrics['latency_ms']:.1f}ms (threshold: {self.thresholds['max_latency_ms']}ms)",
                 datetime.now(),
                 metrics,
@@ -208,7 +215,12 @@ class CrisisMonitor:
             if obstruction_pct > self.thresholds["max_obstruction_percent"]:
                 issue = Issue(
                     IssueType.OBSTRUCTION,
-                    "critical" if obstruction_pct > self.thresholds["max_obstruction_percent"] * 2 else "warning",
+                    (
+                        "critical"
+                        if obstruction_pct
+                        > self.thresholds["max_obstruction_percent"] * 2
+                        else "warning"
+                    ),
                     f"Obstruction detected: {obstruction_pct*100:.1f}% (threshold: {self.thresholds['max_obstruction_percent']*100:.1f}%)",
                     datetime.now(),
                     metrics,
@@ -231,12 +243,14 @@ class CrisisMonitor:
             self._add_issue(issue)
 
         # Store performance data
-        self.performance_history.append({
-            "timestamp": datetime.now().isoformat(),
-            "connection": active_conn.name,
-            "metrics": metrics.copy(),
-            "issues": len(self.active_issues),
-        })
+        self.performance_history.append(
+            {
+                "timestamp": datetime.now().isoformat(),
+                "connection": active_conn.name,
+                "metrics": metrics.copy(),
+                "issues": len(self.active_issues),
+            }
+        )
 
         return {
             "status": self._determine_overall_status(),
@@ -250,17 +264,26 @@ class CrisisMonitor:
         """Add or update an issue."""
         # Check if similar issue already exists
         existing = next(
-            (i for i in self.active_issues if i.issue_type == issue.issue_type and not i.is_resolved()),
-            None
+            (
+                i
+                for i in self.active_issues
+                if i.issue_type == issue.issue_type and not i.is_resolved()
+            ),
+            None,
         )
 
         if existing:
             existing.occurrence_count += 1
             existing.detected_at = datetime.now()
-            logger.debug(f"Issue {issue.issue_type.value} occurred again (count: {existing.occurrence_count})")
-            
+            logger.debug(
+                f"Issue {issue.issue_type.value} occurred again (count: {existing.occurrence_count})"
+            )
+
             # Trigger recovery if persistence threshold reached
-            if existing.occurrence_count >= self.issue_persistence_threshold and self.auto_recovery_enabled:
+            if (
+                existing.occurrence_count >= self.issue_persistence_threshold
+                and self.auto_recovery_enabled
+            ):
                 self._attempt_recovery(existing)
         else:
             self.active_issues.append(issue)
@@ -269,8 +292,10 @@ class CrisisMonitor:
 
     def _attempt_recovery(self, issue: Issue):
         """Attempt automatic recovery for an issue."""
-        logger.info(f"Attempting recovery for persistent issue: {issue.issue_type.value}")
-        
+        logger.info(
+            f"Attempting recovery for persistent issue: {issue.issue_type.value}"
+        )
+
         recovery_actions = {
             IssueType.HIGH_LATENCY: self._recover_high_latency,
             IssueType.LOW_BANDWIDTH: self._recover_low_bandwidth,
@@ -282,8 +307,10 @@ class CrisisMonitor:
         recovery_func = recovery_actions.get(issue.issue_type)
         if recovery_func:
             success = recovery_func(issue)
-            self._trigger_callbacks("recovery_attempted", {"issue": issue, "success": success})
-            
+            self._trigger_callbacks(
+                "recovery_attempted", {"issue": issue, "success": success}
+            )
+
             if success:
                 issue.mark_resolved("automatic_recovery")
                 self.resolved_issues.append(issue)
@@ -300,7 +327,10 @@ class CrisisMonitor:
         """Attempt to recover from low bandwidth."""
         # Try connection recovery or failover
         logger.info("Attempting connection recovery for low bandwidth")
-        return self.connection_manager.auto_recover() or self.connection_manager.check_and_failover()
+        return (
+            self.connection_manager.auto_recover()
+            or self.connection_manager.check_and_failover()
+        )
 
     def _recover_obstruction(self, issue: Issue) -> bool:
         """Attempt to recover from obstruction."""
@@ -311,7 +341,9 @@ class CrisisMonitor:
     def _recover_disconnection(self, issue: Issue) -> bool:
         """Attempt to recover from disconnection."""
         logger.info("Attempting to reestablish connection")
-        return self.connection_manager.auto_recover() or self.connection_manager.connect()
+        return (
+            self.connection_manager.auto_recover() or self.connection_manager.connect()
+        )
 
     def _recover_signal_degradation(self, issue: Issue) -> bool:
         """Attempt to recover from signal degradation."""
@@ -322,15 +354,15 @@ class CrisisMonitor:
         """Determine overall system status based on active issues."""
         if not self.active_issues:
             return "healthy"
-        
+
         critical_count = sum(1 for i in self.active_issues if i.severity == "critical")
         if critical_count > 0:
             return "critical"
-        
+
         warning_count = sum(1 for i in self.active_issues if i.severity == "warning")
         if warning_count > 2:
             return "degraded"
-        
+
         return "warning"
 
     def _issue_to_dict(self, issue: Issue) -> Dict[str, Any]:
@@ -365,7 +397,8 @@ class CrisisMonitor:
         """
         cutoff_time = datetime.now() - timedelta(hours=hours)
         recent_history = [
-            h for h in self.performance_history
+            h
+            for h in self.performance_history
             if datetime.fromisoformat(h["timestamp"]) > cutoff_time
         ]
 
@@ -376,7 +409,7 @@ class CrisisMonitor:
         latencies = [h["metrics"].get("latency_ms", 0) for h in recent_history]
         downlinks = [h["metrics"].get("downlink_mbps", 0) for h in recent_history]
         uplinks = [h["metrics"].get("uplink_mbps", 0) for h in recent_history]
-        
+
         report = {
             "period_hours": hours,
             "samples": len(recent_history),
@@ -413,11 +446,11 @@ class CrisisMonitor:
             hours: Number of hours of data to export
         """
         import json
-        import json
-        
+
         cutoff_time = datetime.now() - timedelta(hours=hours)
         recent_history = [
-            h for h in self.performance_history
+            h
+            for h in self.performance_history
             if datetime.fromisoformat(h["timestamp"]) > cutoff_time
         ]
 
@@ -431,7 +464,7 @@ class CrisisMonitor:
             "resolved_issues": [self._issue_to_dict(i) for i in self.resolved_issues],
         }
 
-        with open(filepath, 'w') as f:
+        with open(filepath, "w") as f:
             json.dump(export_data, f, indent=2)
-        
+
         logger.info(f"Exported {len(recent_history)} samples to {filepath}")

@@ -16,40 +16,40 @@ from src.starlink_monitor import StarlinkMetrics
 
 class TestStarlinkCLI(unittest.TestCase):
     """Test cases for StarlinkCLI"""
-    
+
     def setUp(self):
         """Setup test fixtures"""
         # Create CLI with mocked dependencies
-        with patch('cli.starlink_cli.StarlinkMonitor'), \
-             patch('cli.starlink_cli.SatelliteConnectionManager'), \
-             patch('cli.starlink_cli.Config'):
-            self.cli = StarlinkCLI(host='192.168.100.1')
-    
+        with patch("cli.starlink_cli.StarlinkMonitor"), patch(
+            "cli.starlink_cli.SatelliteConnectionManager"
+        ), patch("cli.starlink_cli.Config"):
+            self.cli = StarlinkCLI(host="192.168.100.1")
+
     def test_cli_initialization(self):
         """Test CLI initialization"""
         self.assertIsNotNone(self.cli)
-        self.assertIn('red', self.cli.colors)
-        self.assertIn('green', self.cli.colors)
-    
+        self.assertIn("red", self.cli.colors)
+        self.assertIn("green", self.cli.colors)
+
     def test_colorize(self):
         """Test text colorization"""
         text = "Test"
-        colored = self.cli.colorize(text, 'red')
+        colored = self.cli.colorize(text, "red")
         self.assertIn(text, colored)
-        self.assertIn('\033[91m', colored)
-    
+        self.assertIn("\033[91m", colored)
+
     def test_colorize_invalid_color(self):
         """Test colorization with invalid color"""
         text = "Test"
-        result = self.cli.colorize(text, 'invalid')
+        result = self.cli.colorize(text, "invalid")
         self.assertEqual(result, text)
-    
-    @patch('builtins.print')
+
+    @patch("builtins.print")
     def test_print_status_success(self, mock_print):
         """Test print_status with successful metrics retrieval"""
         mock_metrics = StarlinkMetrics(
             timestamp=1234567890.0,
-            status='online',
+            status="online",
             satellites_connected=8,
             download_speed=150.5,
             upload_speed=25.3,
@@ -63,59 +63,59 @@ class TestStarlinkCLI(unittest.TestCase):
             dish_power_usage=85.0,
             dish_temp=42.5,
             router_temp=38.0,
-            boot_count=5
+            boot_count=5,
         )
-        
+
         self.cli.monitor.get_metrics = Mock(return_value=mock_metrics)
         self.cli.monitor.thresholds = {
-            'min_download_speed': 25.0,
-            'max_latency': 100.0,
-            'max_packet_loss': 5.0,
-            'max_obstruction': 10.0,
+            "min_download_speed": 25.0,
+            "max_latency": 100.0,
+            "max_packet_loss": 5.0,
+            "max_obstruction": 10.0,
         }
-        
+
         self.cli.print_status()
         self.assertTrue(mock_print.called)
         self.cli.monitor.get_metrics.assert_called_once()
-    
-    @patch('builtins.print')
+
+    @patch("builtins.print")
     def test_print_status_failure(self, mock_print):
         """Test print_status when metrics retrieval fails"""
         self.cli.monitor.get_metrics = Mock(return_value=None)
         self.cli.print_status()
         self.assertTrue(mock_print.called)
-    
-    @patch('builtins.input', return_value='yes')
-    @patch('builtins.print')
+
+    @patch("builtins.input", return_value="yes")
+    @patch("builtins.print")
     def test_reboot_dish_confirmed(self, mock_print, mock_input):
         """Test reboot_dish with user confirmation"""
         self.cli.monitor.reboot_dish = Mock(return_value=True)
         self.cli.reboot_dish()
         self.cli.monitor.reboot_dish.assert_called_once()
-    
-    @patch('builtins.input', return_value='no')
-    @patch('builtins.print')
+
+    @patch("builtins.input", return_value="no")
+    @patch("builtins.print")
     def test_reboot_dish_cancelled(self, mock_print, mock_input):
         """Test reboot_dish with user cancellation"""
         self.cli.monitor.reboot_dish = Mock(return_value=True)
         self.cli.reboot_dish()
         self.cli.monitor.reboot_dish.assert_not_called()
-    
-    @patch('builtins.open', create=True)
-    @patch('json.dump')
-    @patch('builtins.print')
+
+    @patch("builtins.open", create=True)
+    @patch("json.dump")
+    @patch("builtins.print")
     def test_export_data(self, mock_print, mock_json_dump, mock_open):
         """Test export_data"""
-        mock_report = {'status': 'ok', 'samples': 10}
+        mock_report = {"status": "ok", "samples": 10}
         self.cli.monitor.get_performance_report = Mock(return_value=mock_report)
-        
+
         mock_file = MagicMock()
         mock_open.return_value.__enter__.return_value = mock_file
-        
-        self.cli.export_data('test.json', hours=12)
+
+        self.cli.export_data("test.json", hours=12)
         self.cli.monitor.get_performance_report.assert_called_once_with(hours=12)
-        mock_open.assert_called_once_with('test.json', 'w')
+        mock_open.assert_called_once_with("test.json", "w")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
